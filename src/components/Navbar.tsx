@@ -8,6 +8,7 @@ import { Menu, LogOut, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/stores/authStore';
+import { useOrgStore } from '@/stores/orgStore';
 import { logoutUser } from '@/lib/api/auth';
 
 const navItems = [
@@ -18,19 +19,20 @@ const navItems = [
   { name: 'Case Studies', href: '/case-studies' },
 ];
 
-const authNavItems = [
-  { name: 'Dashboard', href: '/dashboard' },
-  { name: 'My Forms', href: '/dashboard/forms' },
-  { name: 'Integrations', href: '/dashboard/integrations' },
-];
-
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isAuthenticated, isLoading } = useAuth();
   const { user } = useAuthStore();
+  const { currentOrgId } = useOrgStore();
   const pathname = usePathname();
+
+  const authNavItems = [
+    { name: 'Dashboard', href: `/dashboard/${currentOrgId || ''}` },
+    { name: 'My Forms', href: `/dashboard/${currentOrgId || ''}/forms` },
+    { name: 'Integrations', href: `/dashboard/${currentOrgId || ''}/integrations` },
+  ];
 
   const handleLogout = async () => {
     setDropdownOpen(false);
