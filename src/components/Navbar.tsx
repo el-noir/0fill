@@ -78,17 +78,19 @@ export function Navbar() {
 
             <Link
               href="/"
-              className="flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-[#9A6BFF] rounded-lg shrink-0"
+              className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-brand-purple rounded-xl shrink-0 transition-all duration-300"
             >
-              <div className="relative w-8 h-8 rounded-lg overflow-hidden group-hover:scale-110 transition-transform shrink-0">
+              <div className="relative w-8 h-8 rounded-[8px] overflow-hidden transition-all duration-300 shrink-0 flex items-center justify-center group-hover:scale-110 drop-shadow-[0_0_8px_rgba(154,107,255,0.4)] group-hover:drop-shadow-[0_0_15px_rgba(154,107,255,0.8)]">
                 <Image
                   src="/logo.png"
                   alt="Formless Logo"
                   fill
-                  className="object-contain"
+                  className="object-cover"
                 />
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">Formless</span>
+              {/* <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-300 tracking-tight group-hover:to-white transition-colors duration-300">
+                Formless
+              </span> */}
             </Link>
 
             {/* Desktop nav links */}
