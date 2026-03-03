@@ -30,13 +30,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         };
     }
 
+    const title = `${form.title} | Formless`;
+    const description = form.description || 'Complete this form via an intelligent AI conversation.';
+
     return {
         title: `${form.title} | Formless Chat`,
-        description: form.description || 'Complete this form via an intelligent AI conversation.',
+        description,
         openGraph: {
-            title: `${form.title} | Formless`,
-            description: form.description,
+            title,
+            description,
             type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
         },
     };
 }
