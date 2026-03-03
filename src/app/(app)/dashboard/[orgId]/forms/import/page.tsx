@@ -11,6 +11,7 @@ import { useRequireAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 import { getGoogleForms } from "@/lib/api/integrations";
 import { importOrgForm } from "@/lib/api/organizations";
+import { toast } from "sonner";
 import { DashboardBreadcrumbs } from "@/components/dashboard/DashboardBreadcrumbs";
 
 export default function ImportFormPage() {
@@ -58,6 +59,11 @@ export default function ImportFormPage() {
         try {
             const result = await importOrgForm(orgId, formId);
             setImporting((prev) => ({ ...prev, [formId]: 'done' }));
+
+            toast.success("Form imported successfully", {
+                description: "Redirecting to the AI Chat Builder..."
+            });
+
             // Redirect to the AI Chat Builder for the newly imported form
             const newId = result?.data?.id ?? result?.id;
             if (newId) {
@@ -65,7 +71,9 @@ export default function ImportFormPage() {
             }
         } catch (e: any) {
             setImporting((prev) => ({ ...prev, [formId]: 'error' }));
-            setImportErrors((prev) => ({ ...prev, [formId]: e.message || 'Import failed' }));
+            const msg = e.message || 'Import failed';
+            setImportErrors((prev) => ({ ...prev, [formId]: msg }));
+            toast.error("Failed to import form", { description: msg });
         }
     };
 

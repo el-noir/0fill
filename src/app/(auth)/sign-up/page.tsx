@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import Image from 'next/image';
+import Link from 'next/link';
 import { registerUser, loginWithGoogle } from "@/lib/api/auth";
 import { RegisterDto } from "@/app/types/Auth";
 import { motion } from "motion/react";
@@ -95,6 +97,11 @@ function SignUp() {
             <div className="bg-[#1C1C24] rounded-2xl p-10 shadow-xl border border-white/10 backdrop-blur-sm">
               {/* Header */}
               <div className="mb-8">
+                <Link href="/" className="inline-block mb-8 group focus:outline-none focus:ring-2 focus:ring-brand-purple rounded-lg">
+                  <div className="relative w-12 h-12 rounded-xl border border-white/10 bg-[#0B0B0F]/50 flex items-center justify-center shadow-lg group-hover:scale-105 transition-all overflow-hidden p-2">
+                    <Image src="/logo.png" alt="Formless Logo" fill className="object-contain p-2" />
+                  </div>
+                </Link>
                 <h1 className="text-3xl font-bold text-white mb-2">
                   Create Account
                 </h1>

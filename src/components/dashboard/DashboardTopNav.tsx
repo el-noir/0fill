@@ -1,8 +1,9 @@
 "use client";
 
-import { Search, Bell, User, LogOut, Settings as SettingsIcon, Shield } from "lucide-react";
+import { Search, Bell, User, LogOut, Settings as SettingsIcon, Shield, Menu, LayoutDashboard, FormInput, Inbox, Blocks, Settings } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,9 +12,48 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { logoutUser, fetchUserProfile } from "@/lib/api/auth";
 import { useEffect } from "react";
 import { OrganizationSwitcher } from "@/components/dashboard/OrganizationSwitcher";
+
+import Image from "next/image";
+
+function MobileSidebarLinks() {
+    const pathname = usePathname();
+    const params = useParams();
+    const orgId = params.orgId as string;
+
+    const links = [
+        { name: "Overview", href: `/dashboard/${orgId}`, icon: LayoutDashboard },
+        { name: "Forms", href: `/dashboard/${orgId}/forms`, icon: FormInput },
+        { name: "Submissions", href: `/dashboard/${orgId}/submissions`, icon: Inbox },
+        { name: "Integrations", href: `/dashboard/${orgId}/integrations`, icon: Blocks },
+        { name: "Settings", href: `/dashboard/${orgId}/settings`, icon: Settings },
+    ];
+
+    return (
+        <nav className="py-6 px-4 space-y-1">
+            {links.map((link) => {
+                const isActive = pathname === link.href;
+                const Icon = link.icon;
+                return (
+                    <Link
+                        key={link.name}
+                        href={link.href}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors duration-150 ${isActive
+                            ? "bg-[#1C1C22] text-white font-medium"
+                            : "text-gray-400 hover:text-white active:bg-white/[0.05]"
+                            }`}
+                    >
+                        <Icon className={`w-4 h-4 shrink-0 col-span-1 ${isActive ? "text-white" : "text-gray-500"}`} />
+                        {link.name}
+                    </Link>
+                );
+            })}
+        </nav>
+    );
+}
 
 export function DashboardTopNav() {
     const { user } = useAuthStore();
@@ -32,8 +72,36 @@ export function DashboardTopNav() {
     return (
         <header className="h-16 bg-[#0B0B0F] border-b border-gray-800/80 px-4 md:px-6 flex items-center justify-between sticky top-0 z-30">
             <div className="flex items-center gap-4">
-                <div className="md:hidden text-white font-bold flex items-center mr-2">
-                    <span className="w-5 h-5 bg-brand-purple rounded-sm"></span>
+                <div className="md:hidden flex items-center mr-2">
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <button className="p-2 -ml-2 text-gray-400 hover:text-white transition-colors focus:outline-none">
+                                <Menu className="w-5 h-5" />
+                            </button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="w-[280px] sm:w-[320px] bg-[#0B0B0F] border-r border-gray-800 p-0 flex flex-col h-full">
+                            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                            <SheetDescription className="sr-only">
+                                Access dashboard pages and settings for your organization.
+                            </SheetDescription>
+                            <div className="h-16 flex items-center px-6 border-b border-gray-800/80 shrink-0">
+                                <Link href="/" className="text-white font-semibold flex items-center gap-2.5 tracking-tight">
+                                    <div className="relative w-6 h-6 rounded-md overflow-hidden group-hover:scale-110 transition-transform shrink-0">
+                                        <Image
+                                            src="/logo.png"
+                                            alt="Formless Logo"
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                    Formless
+                                </Link>
+                            </div>
+                            <div className="flex-1 overflow-y-auto">
+                                <MobileSidebarLinks />
+                            </div>
+                        </SheetContent>
+                    </Sheet>
                 </div>
                 <div className="flex items-center text-sm font-medium">
                     <OrganizationSwitcher />

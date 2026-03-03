@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { Bot, User, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 const scenarios = [
   {
@@ -81,8 +82,8 @@ export function ChatMockup() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-800">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-md bg-brand-purple flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="relative w-10 h-10 rounded-md bg-brand-purple flex items-center justify-center overflow-hidden">
+                <Image src="/logo.png" alt="Formless Logo" fill className="object-contain p-1.5" />
               </div>
               <div>
                 <h3 className="text-white font-semibold text-sm">Formless Assistant</h3>
@@ -112,9 +113,9 @@ export function ChatMockup() {
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className={`flex items-end gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${msg.role === 'ai' ? 'bg-brand-dark border border-gray-800' : 'bg-white text-black shadow-sm'
+                    <div className={`relative w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${msg.role === 'ai' ? 'bg-brand-dark border border-gray-800' : 'bg-white text-black shadow-sm'
                       }`}>
-                      {msg.role === 'ai' ? <Bot className="w-4 h-4 text-brand-purple" /> : <User className="w-4 h-4" />}
+                      {msg.role === 'ai' ? <Image src="/logo.png" alt="AI" fill className="object-contain p-1.5" /> : <User className="w-4 h-4" />}
                     </div>
 
                     <div className={`px-4 py-3 rounded-2xl max-w-[80%] text-sm leading-relaxed shadow-none ${msg.role === 'ai'
@@ -136,8 +137,8 @@ export function ChatMockup() {
                 exit={{ opacity: 0 }}
                 className="flex items-center gap-3"
               >
-                <div className="w-8 h-8 rounded-full bg-brand-dark border border-gray-800 flex items-center justify-center shrink-0">
-                  <Bot className="w-4 h-4 text-brand-purple" />
+                <div className="relative w-8 h-8 rounded-full bg-brand-dark border border-gray-800 flex items-center justify-center shrink-0 overflow-hidden">
+                  <Image src="/logo.png" alt="AI Typing" fill className="object-contain p-1.5" />
                 </div>
                 <div className="px-4 py-3 rounded-2xl bg-brand-dark border border-gray-800 rounded-bl-none flex gap-1 items-center h-[46px]">
                   {[0, 1, 2].map((i) => (

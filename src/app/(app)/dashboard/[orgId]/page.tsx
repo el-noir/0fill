@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useOrgStore } from "@/stores/orgStore";
 import { getOrgForms } from "@/lib/api/organizations";
 import { KPICards } from "@/components/dashboard/KPICards";
+import { KPICardsSkeleton } from "@/components/dashboard/skeletons/KPICardsSkeleton";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { FormsListWidget } from "@/components/dashboard/FormsListWidget";
 import { IntegrationsView } from "@/components/dashboard/IntegrationsView";
@@ -73,7 +74,11 @@ function DashboardContent() {
         </div>
       </div>
 
-      <KPICards formsCount={forms?.length || 0} isLoading={loadingForms} />
+      {loadingForms ? (
+        <KPICardsSkeleton />
+      ) : (
+        <KPICards formsCount={forms?.length || 0} isLoading={loadingForms} />
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
         <div className="xl:col-span-2">

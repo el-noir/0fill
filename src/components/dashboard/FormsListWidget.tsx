@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { MoreHorizontal, Plus, Database, ExternalLink, Wand2, Trash2 } from "lucide-react";
+import { FormsListSkeleton } from "@/components/dashboard/skeletons/FormsListSkeleton";
 import Link from "next/link";
 import {
     DropdownMenu,
@@ -32,11 +33,7 @@ export function FormsListWidget({
     const orgId = params.orgId as string;
 
     if (isLoading) {
-        return (
-            <div className="bg-[#0B0B0F] border border-gray-800/80 rounded-md p-6 h-full flex items-center justify-center">
-                <div className="w-5 h-5 rounded-full border-2 border-gray-800 border-t-gray-400 animate-spin" />
-            </div>
-        );
+        return <FormsListSkeleton />;
     }
 
     if (error) {

@@ -8,6 +8,7 @@ import {
 import { DashboardBreadcrumbs } from "./DashboardBreadcrumbs";
 import { getGoogleForms } from "@/lib/api/integrations";
 import { importOrgForm } from "@/lib/api/organizations";
+import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -55,12 +56,19 @@ export function FormsView({ currentOrgId }: { currentOrgId: string }) {
             const result = await importOrgForm(currentOrgId, formId);
             setImporting((prev) => ({ ...prev, [formId]: 'done' }));
             const newId = result?.data?.id ?? result?.id;
+
+            toast.success("Form imported successfully", {
+                description: "Redirecting to the AI Chat Builder..."
+            });
+
             if (newId) {
                 setTimeout(() => router.push(`/dashboard/${currentOrgId}/forms/${newId}/builder`), 800);
             }
         } catch (e: any) {
             setImporting((prev) => ({ ...prev, [formId]: 'error' }));
-            setImportErrors((prev) => ({ ...prev, [formId]: e.message || 'Import failed' }));
+            const msg = e.message || 'Import failed';
+            setImportErrors((prev) => ({ ...prev, [formId]: msg }));
+            toast.error("Failed to import form", { description: msg });
         }
     };
 

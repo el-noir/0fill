@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import Link from 'next/link';
+import Image from 'next/image';
 import { loginUser, loginWithGoogle } from "@/lib/api/auth";
 import { LoginDto } from "@/app/types/Auth";
 import { motion } from "motion/react";
@@ -103,8 +104,8 @@ function SignInContent() {
               {/* Header */}
               <div className="mb-8">
                 <Link href="/" className="inline-block mb-8 group focus:outline-none focus:ring-2 focus:ring-brand-purple rounded-lg">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-purple to-brand-purple flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-purple/20 group-hover:scale-105 transition-all">
-                    FI
+                  <div className="relative w-12 h-12 rounded-xl border border-white/10 bg-[#0B0B0F]/50 flex items-center justify-center shadow-lg group-hover:scale-105 transition-all overflow-hidden p-2">
+                    <Image src="/logo.png" alt="Formless Logo" fill className="object-contain p-2" />
                   </div>
                 </Link>
                 <h1 className="text-3xl font-bold text-white mb-2">
