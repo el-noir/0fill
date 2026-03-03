@@ -1,5 +1,5 @@
 import React from 'react';
-import { Send, CheckCircle, Loader2 } from 'lucide-react';
+import { Send, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface ChatInputProps {
     input: string;
@@ -10,57 +10,48 @@ interface ChatInputProps {
     chatState: string;
 }
 
-export function ChatInput({
-    input,
-    setInput,
-    handleSend,
-    isSubmitting,
-    isTyping,
-    chatState,
-}: ChatInputProps) {
+export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping, chatState }: ChatInputProps) {
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
     const onSend = (e?: React.FormEvent) => {
         handleSend(e);
-        // Focus back after a short delay to allow state updates
         setTimeout(() => textareaRef.current?.focus(), 10);
     };
 
     return (
-        <footer className="relative z-10 p-4 border-t border-gray-800 bg-[#0B0B0F]/90 backdrop-blur-md pb-safe">
-            <div className="max-w-3xl mx-auto w-full">
+        <footer className="shrink-0 border-t border-gray-800/60 bg-[#0B0B0F] pb-safe relative z-10">
+            <div className="max-w-2xl mx-auto px-4 py-3">
                 {chatState === 'COMPLETED' ? (
-                    <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-xl flex items-center justify-center gap-3">
-                        <CheckCircle className="w-6 h-6" />
-                        <p className="font-semibold">Form submitted successfully. You can close this window.</p>
+                    <div className="flex items-center gap-3 bg-[#111116] border border-gray-800 rounded-xl px-4 py-3.5">
+                        <CheckCircle2 className="w-5 h-5 text-brand-purple shrink-0" />
+                        <div>
+                            <p className="text-sm font-medium text-white">All responses submitted</p>
+                            <p className="text-xs text-gray-500 mt-0.5">You can close this tab.</p>
+                        </div>
                     </div>
                 ) : chatState === 'CONFIRMING' || chatState === 'READY_TO_SUBMIT' ? (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-2">
                         <button
                             onClick={() => handleSend(undefined, 'submit')}
                             disabled={isSubmitting || isTyping}
-                            className="w-full bg-brand-purple hover:bg-[#0da372] text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 group animate-in fade-in slide-in-from-bottom-2 duration-300"
+                            className="w-full bg-brand-purple hover:bg-[#0da372] disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
                         >
-                            {isSubmitting ? (
-                                <Loader2 className="w-6 h-6 animate-spin" />
-                            ) : (
-                                <>
-                                    <CheckCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                                    <span>Submit Final Response</span>
-                                </>
-                            )}
+                            {isSubmitting
+                                ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
+                                : <><CheckCircle2 className="w-4 h-4" /> Confirm & Submit</>
+                            }
                         </button>
                         <button
                             onClick={() => textareaRef.current?.focus()}
-                            className="text-sm text-gray-400 hover:text-white transition-colors"
+                            className="text-xs text-gray-500 hover:text-gray-300 transition-colors text-center py-1"
                         >
-                            Or type something to change an answer
+                            Change an answer? Type below
                         </button>
                     </div>
                 ) : (
                     <form
                         onSubmit={onSend}
-                        className="relative flex items-end gap-2 bg-[#1A1A24] border border-gray-700 rounded-2xl focus-within:border-brand-purple focus-within:ring-1 focus-within:ring-brand-purple transition-all p-1.5 pl-4"
+                        className="flex items-end gap-2 bg-[#111116] border border-gray-800 rounded-xl focus-within:border-gray-700 transition-colors px-3 pt-2.5 pb-2"
                     >
                         <textarea
                             ref={textareaRef}
@@ -68,7 +59,7 @@ export function ChatInput({
                             onChange={(e) => setInput(e.target.value)}
                             placeholder="Type your response..."
                             disabled={isSubmitting || isTyping}
-                            className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none text-white focus:outline-none focus:ring-0 resize-none py-3 disabled:opacity-50"
+                            className="flex-1 max-h-28 min-h-[36px] bg-transparent text-sm text-white placeholder-gray-600 focus:outline-none resize-none disabled:opacity-50 leading-relaxed py-0.5"
                             rows={1}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -80,19 +71,15 @@ export function ChatInput({
                         <button
                             type="submit"
                             disabled={!input.trim() || isSubmitting || isTyping}
-                            className="shrink-0 w-11 h-11 bg-brand-purple hover:bg-[#0da372] text-white rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 disabled:hover:bg-brand-purple"
+                            className="shrink-0 w-8 h-8 bg-brand-purple hover:bg-[#0da372] disabled:opacity-30 disabled:hover:bg-brand-purple text-white rounded-lg flex items-center justify-center transition-colors mb-0.5"
                         >
-                            {isSubmitting ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <Send className="w-5 h-5 ml-1" />
-                            )}
+                            <Send className="w-3.5 h-3.5" />
                         </button>
                     </form>
                 )}
-                <div className="text-center mt-3">
-                    <p className="text-[10px] text-gray-600">Powered by Formless AI</p>
-                </div>
+                <p className="text-center text-[10px] text-gray-700 mt-2">
+                    Powered by <span className="text-gray-600">Formless</span>
+                </p>
             </div>
         </footer>
     );

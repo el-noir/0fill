@@ -1,65 +1,71 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-
 import { Message } from './types';
 
 interface MessageItemProps {
     message: Message;
-    state?: string;
+    aiName?: string;
+    aiAvatar?: string;
 }
 
-export function MessageItem({ message, state }: MessageItemProps) {
+export function MessageItem({ message, aiName, aiAvatar }: MessageItemProps) {
     const isUser = message.role === 'user';
 
     return (
-        <div className={cn(
-            "flex w-full",
-            isUser ? "justify-end" : "justify-start"
-        )}>
-            <div className={cn(
-                "max-w-[85%] md:max-w-[75%] rounded-2xl px-5 py-3.5",
-                isUser
-                    ? "bg-brand-purple text-white rounded-br-sm"
-                    : "bg-[#1A1A24] border border-gray-800 text-gray-100 rounded-bl-sm"
-            )}>
-                {!isUser ? (
-                    <div className="prose prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-black/50 prose-a:text-brand-purple">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
+        <div className={cn('flex gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}>
+            {/* Avatar */}
+            <div className="shrink-0 pt-0.5">
+                {isUser ? (
+                    <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center">
+                        <span className="text-[10px] font-semibold text-gray-300">You</span>
                     </div>
                 ) : (
-                    <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                )}
-                {message.fieldSummaries && message.fieldSummaries.length > 0 && (
-                    <div className="mt-4 border border-gray-800 rounded-lg overflow-hidden bg-black/20">
-                        <table className="w-full text-xs text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-gray-800 bg-black/40">
-                                    <th className="px-3 py-2 font-semibold text-gray-400">Field</th>
-                                    <th className="px-3 py-2 font-semibold text-gray-400">Your Answer</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {message.fieldSummaries.map((s, idx) => (
-                                    <tr key={s.fieldId || idx} className="border-b border-gray-800/50 last:border-0 hover:bg-white/5 transition-colors">
-                                        <td className="px-3 py-2 text-gray-300 font-medium">{s.label}</td>
-                                        <td className="px-3 py-2 text-gray-400 italic">
-                                            {Array.isArray(s.value) ? s.value.join(', ') : s.value || <span className="text-gray-600 opacity-50">skipped</span>}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="w-7 h-7 rounded-full bg-brand-purple/15 border border-brand-purple/20 flex items-center justify-center text-sm leading-none">
+                        {aiAvatar || '✦'}
                     </div>
                 )}
-                {message.timestamp && (
-                    <p className={cn(
-                        "text-[10px] mt-2 text-right",
-                        isUser ? "text-white/60" : "text-gray-500"
-                    )}>
-                        {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
-                    </p>
+            </div>
+
+            <div className={cn('flex flex-col gap-1 max-w-[80%] md:max-w-[70%]', isUser && 'items-end')}>
+                {/* Sender */}
+                <span className="text-[11px] text-gray-500 font-medium px-1">
+                    {isUser ? 'You' : (aiName || 'Assistant')}
+                </span>
+
+                {/* Bubble */}
+                <div className={cn(
+                    'rounded-2xl px-4 py-3 text-sm leading-relaxed',
+                    isUser
+                        ? 'bg-brand-purple text-white rounded-tr-none'
+                        : 'bg-[#111116] border border-gray-800 text-gray-200 rounded-tl-none'
+                )}>
+                    {isUser ? (
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                    ) : (
+                        <div className="prose prose-invert prose-sm max-w-none prose-p:my-1 prose-p:leading-relaxed prose-a:text-brand-purple prose-strong:text-white">
+                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                        </div>
+                    )}
+                </div>
+
+                {/* Answer summary */}
+                {message.fieldSummaries && message.fieldSummaries.length > 0 && (
+                    <div className="w-full mt-1 rounded-xl border border-gray-800 overflow-hidden bg-[#0f0f14]">
+                        <div className="px-3 py-2 border-b border-gray-800 bg-[#111116]">
+                            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Summary</span>
+                        </div>
+                        <div className="divide-y divide-gray-800/60">
+                            {message.fieldSummaries.map((s, idx) => (
+                                <div key={s.fieldId || idx} className="flex items-baseline justify-between px-3 py-2.5 gap-4">
+                                    <span className="text-[12px] text-gray-400 shrink-0 max-w-[45%] leading-snug">{s.label}</span>
+                                    <span className="text-[12px] text-gray-200 text-right leading-snug">
+                                        {Array.isArray(s.value) ? s.value.join(', ') : s.value || '—'}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

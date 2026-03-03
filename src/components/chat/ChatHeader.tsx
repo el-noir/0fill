@@ -1,43 +1,47 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 interface ChatHeaderProps {
     title?: string;
+    aiName?: string;
     chatState: string;
     progress: number;
 }
 
-export function ChatHeader({ title, chatState, progress }: ChatHeaderProps) {
+export function ChatHeader({ title, aiName, chatState, progress }: ChatHeaderProps) {
+    const isCompleted = chatState === 'COMPLETED';
+
     return (
-        <>
-            <header className="relative z-10 p-4 border-b border-gray-800 bg-[#0B0B0F]/80 backdrop-blur-md flex justify-between items-center sticky top-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-purple to-brand-purple flex items-center justify-center shrink-0">
-                        <Sparkles className="w-4 h-4 text-white" />
+        <div className="shrink-0">
+            <header className="px-4 h-14 border-b border-gray-800/60 bg-[#0B0B0F] flex items-center justify-between gap-4 sticky top-0 z-10">
+                {/* Left: Formless logo + form title */}
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative w-6 h-6 shrink-0">
+                        <Image src="/logo.png" alt="Formless" fill className="object-contain" />
                     </div>
-                    <div>
-                        <h1 className="font-semibold text-sm line-clamp-1">{title}</h1>
-                        <p className="text-xs text-green-400">
-                            {chatState === 'COMPLETED' ? 'Completed' : 'AI Agent Online'}
-                        </p>
-                    </div>
+                    <div className="w-px h-4 bg-gray-800 shrink-0" />
+                    <p className="text-sm font-medium text-gray-300 truncate">{title}</p>
                 </div>
-                {chatState !== 'COMPLETED' && (
-                    <div className="text-xs font-medium text-gray-500 bg-gray-900 px-3 py-1.5 rounded-full border border-gray-800">
-                        {progress}% Done
-                    </div>
-                )}
+
+                {/* Right: progress or done state */}
+                <div className="shrink-0 text-xs text-gray-500 font-medium">
+                    {isCompleted ? (
+                        <span className="text-brand-purple">Completed</span>
+                    ) : (
+                        <span>{progress}% complete</span>
+                    )}
+                </div>
             </header>
 
-            {/* Progress Bar */}
-            {chatState !== 'COMPLETED' && (
-                <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+            {/* Progress bar */}
+            {!isCompleted && (
+                <div className="h-[1px] bg-gray-800">
                     <div
-                        className="h-full bg-gradient-to-r from-brand-purple to-brand-purple transition-all duration-500 ease-out"
+                        className="h-full bg-brand-purple transition-all duration-500 ease-out"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
             )}
-        </>
+        </div>
     );
 }
