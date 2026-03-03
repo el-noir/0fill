@@ -32,6 +32,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     const title = `${form.title} | Formless`;
     const description = form.description || 'Complete this form via an intelligent AI conversation.';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://formless-frontend.vercel.app';
+    const imageUrl = `${appUrl}/api/og?token=${token}`;
 
     return {
         title: `${form.title} | Formless Chat`,
@@ -40,11 +42,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             title,
             description,
             type: 'website',
+            images: [
+                {
+                    url: imageUrl,
+                    secureUrl: imageUrl,
+                    width: 1200,
+                    height: 630,
+                    alt: title,
+                }
+            ]
         },
         twitter: {
             card: 'summary_large_image',
             title,
             description,
+            images: [imageUrl],
         },
     };
 }

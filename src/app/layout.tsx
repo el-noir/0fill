@@ -40,25 +40,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://Formless.app',
+    url: 'https://formless.app',
     title: 'Formless - Turn Forms Into AI Conversations',
     description: 'Transform static Google Forms into intelligent AI-driven chat experiences. No coding required. Trusted by 2,000+ companies.',
     siteName: 'Formless',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Formless - AI-Powered Conversational Forms',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Formless - Turn Forms Into AI Conversations',
     description: 'Transform static Google Forms into intelligent AI-driven chat experiences. No coding required.',
     creator: '@Formless',
-    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
