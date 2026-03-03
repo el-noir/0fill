@@ -57,6 +57,9 @@ export async function GET(request: NextRequest) {
     const aiName = formInfo.aiName || 'Formless Assistant';
     const title = formInfo.title || 'Untitled Form';
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://formless-frontend.vercel.app';
+    const logoSrc = `${appUrl}/logo.png`;
+
     return new ImageResponse(
         (
             <div
@@ -80,17 +83,15 @@ export async function GET(request: NextRequest) {
                             width: 60,
                             height: 60,
                             borderRadius: 16,
-                            backgroundColor: '#0da372',
+                            overflow: 'hidden',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             marginRight: 24,
+                            backgroundColor: 'transparent'
                         }}
                     >
-                        {/* Custom Formless SVG */}
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
+                        <img src={logoSrc} width={60} height={60} style={{ objectFit: 'contain' }} alt="Formless" />
                     </div>
                     <span style={{ color: '#0da372', fontSize: 40, fontWeight: 'bold', letterSpacing: '-0.02em' }}>
                         Formless
