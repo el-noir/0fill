@@ -77,7 +77,7 @@ export default function ImportFormPage() {
             // Import dynamically to avoid top-level dependencies if possible, or just use it directly since it's already imported
             const { getIntegrationsGoogleAuthUrl } = await import("@/lib/api/integrations");
 
-            const response = await fetch(getIntegrationsGoogleAuthUrl(orgId), {
+            const response = await fetch(getIntegrationsGoogleAuthUrl(orgId, window.location.pathname), {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`

@@ -73,7 +73,7 @@ export function FormsView({ currentOrgId }: { currentOrgId: string }) {
             const { useAuthStore } = await import("@/stores/authStore");
             const { accessToken } = useAuthStore.getState();
 
-            const response = await fetch(getIntegrationsGoogleAuthUrl(currentOrgId), {
+            const response = await fetch(getIntegrationsGoogleAuthUrl(currentOrgId, window.location.pathname), {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`

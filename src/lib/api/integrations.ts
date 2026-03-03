@@ -1,8 +1,13 @@
 import { apiFetch } from "./apiFetch";
 import { API_BASE_URL } from "./config";
 
-export const getIntegrationsGoogleAuthUrl = (orgId?: string) => {
-    return `${API_BASE_URL}/integrations/google/auth${orgId ? `?orgId=${orgId}` : ''}`;
+export const getIntegrationsGoogleAuthUrl = (orgId?: string, returnUrl?: string) => {
+    let url = `${API_BASE_URL}/integrations/google/auth`;
+    const params = new URLSearchParams();
+    if (orgId) params.append('orgId', orgId);
+    if (returnUrl) params.append('returnUrl', returnUrl);
+    const queryString = params.toString();
+    return queryString ? `${url}?${queryString}` : url;
 };
 
 export const getGoogleForms = async (orgId?: string) => {

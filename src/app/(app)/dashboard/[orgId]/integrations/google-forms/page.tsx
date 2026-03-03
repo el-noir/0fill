@@ -51,7 +51,7 @@ export default function GoogleFormsHub() {
             setLoading(true);
             setError(null);
 
-            const response = await fetch(getIntegrationsGoogleAuthUrl(orgId), {
+            const response = await fetch(getIntegrationsGoogleAuthUrl(orgId, window.location.pathname), {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
