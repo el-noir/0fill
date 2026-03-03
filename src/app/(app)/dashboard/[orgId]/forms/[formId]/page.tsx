@@ -5,13 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
     Loader2, ExternalLink, FileText,
-    AlertCircle, Wand2, MessageSquare, CheckCircle2, TrendingDown, Clock
+    AlertCircle, Wand2, MessageSquare, CheckCircle2, TrendingDown, Clock, Copy, Code
 } from "lucide-react";
 import { useRequireAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
-import { getOrgForm, getFormResponses } from "@/lib/api/organizations";
+import { getOrgForm, getFormResponses, saveChatConfig } from "@/lib/api/organizations";
 import { ResponsesList } from "@/components/forms/ResponsesList";
 import { DashboardBreadcrumbs } from "@/components/dashboard/DashboardBreadcrumbs";
+import { toast } from "sonner";
 
 const FIELD_TYPE_STYLES: Record<string, string> = {
     MULTIPLE_CHOICE: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
@@ -37,7 +38,12 @@ export default function OrgFormViewerPage() {
     const [loading, setLoading] = useState(true);
     const [responsesLoading, setResponsesLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'fields' | 'responses' | 'details'>('fields');
+    const [activeTab, setActiveTab] = useState<'fields' | 'responses' | 'details' | 'embed'>('fields');
+
+    // Domain whitelist state
+    const [allowedDomains, setAllowedDomains] = useState<string[]>([]);
+    const [domainInput, setDomainInput] = useState('');
+    const [savingDomains, setSavingDomains] = useState(false);
 
     useEffect(() => {
         if (!accessToken || !orgId || !formId) return;
@@ -46,6 +52,8 @@ export default function OrgFormViewerPage() {
             try {
                 const data = await getOrgForm(orgId, formId);
                 setForm(data);
+                // Initialize domain whitelist from existing config
+                setAllowedDomains(data?.chatConfig?.allowedDomains ?? []);
             } catch (e: any) {
                 setError(e.message || 'Failed to load form');
             } finally {
@@ -182,6 +190,7 @@ export default function OrgFormViewerPage() {
                     {[
                         { id: 'fields', label: `Fields (${fields.length})` },
                         { id: 'responses', label: `Responses (${form.submissionCount ?? 0})` },
+                        { id: 'embed', label: 'Embed' },
                         { id: 'details', label: 'Details' },
                     ].map((tab) => (
                         <button
@@ -270,6 +279,133 @@ export default function OrgFormViewerPage() {
                                 <span className="text-xs text-white text-right max-w-[60%] truncate font-mono">{String(value ?? '—')}</span>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {/* Embed Tab */}
+                {activeTab === 'embed' && (
+                    <div className="bg-[#0B0B0F] border border-gray-800/80 rounded-md p-6 shadow-sm">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 rounded-full bg-brand-purple/10 flex items-center justify-center">
+                                <Code className="w-5 h-5 text-brand-purple" />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-medium text-sm">Add Formless to your website</h3>
+                                <p className="text-gray-500 text-[11px]">One script tag. Full conversational AI.</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div>
+                                <h4 className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Copy-Paste Snippet</h4>
+                                <div className="relative group">
+                                    <pre className="bg-black/40 border border-gray-800 rounded-lg p-5 text-[11px] text-brand-purple/90 overflow-x-auto font-mono leading-relaxed pr-12">
+                                        {`<script \n  src="${typeof window !== 'undefined' ? window.location.origin : 'https://formless.app'}/widget.js" \n  data-formless-token="${form.chatLinkToken}"\n></script>`}
+                                    </pre>
+                                    <button
+                                        onClick={() => {
+                                            const code = `<script src="${typeof window !== 'undefined' ? window.location.origin : 'https://formless.app'}/widget.js" data-formless-token="${form.chatLinkToken}"></script>`;
+                                            navigator.clipboard.writeText(code);
+                                            toast.success("Snippet copied!");
+                                        }}
+                                        className="absolute top-4 right-4 bg-gray-800 hover:bg-[#10B981] text-white p-2 rounded-md transition-all active:scale-95 shadow-lg group-hover:scale-110"
+                                        title="Copy code"
+                                    >
+                                        <Copy className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Allowed Domains */}
+                            <div className="border border-gray-800 rounded-lg p-5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h4 className="text-xs font-semibold text-gray-200">Allowed Domains</h4>
+                                        <p className="text-[11px] text-gray-500 mt-0.5">Leave empty to allow all domains. Use <code className="text-brand-purple">*.mysite.com</code> for wildcard subdomains.</p>
+                                    </div>
+                                    <button
+                                        disabled={savingDomains}
+                                        onClick={async () => {
+                                            if (!form) return;
+                                            setSavingDomains(true);
+                                            try {
+                                                await saveChatConfig(orgId, formId, {
+                                                    ...form.chatConfig,
+                                                    allowedDomains,
+                                                });
+                                                toast.success('Domain whitelist saved!');
+                                            } catch (e: any) {
+                                                toast.error(e.message || 'Failed to save.');
+                                            } finally {
+                                                setSavingDomains(false);
+                                            }
+                                        }}
+                                        className="text-[11px] bg-brand-purple hover:bg-[#0da372] disabled:opacity-50 text-white px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5"
+                                    >
+                                        {savingDomains ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                                        Save
+                                    </button>
+                                </div>
+
+                                {/* Add domain row */}
+                                <div className="flex gap-2 mb-3">
+                                    <input
+                                        type="text"
+                                        value={domainInput}
+                                        onChange={(e) => setDomainInput(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                const d = domainInput.trim().toLowerCase();
+                                                if (d && !allowedDomains.includes(d)) {
+                                                    setAllowedDomains((prev) => [...prev, d]);
+                                                }
+                                                setDomainInput('');
+                                            }
+                                        }}
+                                        placeholder="e.g. mywebsite.com or *.mywebsite.com"
+                                        className="flex-1 bg-black/30 border border-gray-800 rounded-md px-3 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-brand-purple"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const d = domainInput.trim().toLowerCase();
+                                            if (d && !allowedDomains.includes(d)) setAllowedDomains((prev) => [...prev, d]);
+                                            setDomainInput('');
+                                        }}
+                                        className="bg-gray-800 hover:bg-gray-700 text-white text-[11px] font-medium px-3 py-2 rounded-md transition-colors"
+                                    >
+                                        + Add
+                                    </button>
+                                </div>
+
+                                {/* Domain tags */}
+                                {allowedDomains.length === 0 ? (
+                                    <p className="text-[11px] text-gray-600 italic">No restrictions — widget can be embedded on any site.</p>
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        {allowedDomains.map((domain) => (
+                                            <span key={domain} className="flex items-center gap-1.5 bg-[#111116] border border-gray-800 text-gray-300 text-[11px] px-2.5 py-1 rounded-full font-mono">
+                                                {domain}
+                                                <button
+                                                    onClick={() => setAllowedDomains((prev) => prev.filter((d) => d !== domain))}
+                                                    className="text-gray-600 hover:text-red-400 transition-colors ml-0.5"
+                                                >
+                                                    &times;
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-[#111116]/50 border border-dashed border-gray-800 rounded-lg p-4">
+                                <h4 className="text-xs font-medium text-gray-300 mb-2">Instructions</h4>
+                                <ul className="text-xs text-gray-500 space-y-2 list-disc pl-4">
+                                    <li>Paste this tag anywhere in your HTML (inside <code>&lt;head&gt;</code> or at the end of <code>&lt;body&gt;</code>).</li>
+                                    <li>The floating AI bubble will automatically appear in the bottom-right corner.</li>
+                                    <li>The widget is fully responsive and works on mobile devices.</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

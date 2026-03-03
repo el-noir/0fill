@@ -150,7 +150,7 @@ export const getFormResponses = async (orgId: string, formId: string) => {
 export const saveChatConfig = async (
     orgId: string,
     formId: string,
-    config: { aiName?: string; tone?: string; avatar?: string; welcomeMessage?: string },
+    config: { aiName?: string; tone?: string; avatar?: string; welcomeMessage?: string; allowedDomains?: string[] },
 ) => {
     const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/chat-config`, {
         method: 'PATCH',
