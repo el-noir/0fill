@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logoutUser, fetchUserProfile } from "@/lib/api/auth";
 import { useEffect } from "react";
+import { OrganizationSwitcher } from "@/components/dashboard/OrganizationSwitcher";
 
 export function DashboardTopNav() {
     const { user } = useAuthStore();
@@ -22,10 +23,6 @@ export function DashboardTopNav() {
     useEffect(() => {
         fetchUserProfile().catch(console.error);
     }, []);
-
-    const pathSegments = pathname.split('/').filter(Boolean);
-    const currentPage = pathSegments[pathSegments.length - 1] || 'overview';
-    const displayTitle = currentPage.charAt(0).toUpperCase() + currentPage.slice(1);
 
     const handleLogout = async () => {
         await logoutUser();
@@ -39,8 +36,7 @@ export function DashboardTopNav() {
                     <span className="w-5 h-5 bg-brand-purple rounded-sm"></span>
                 </div>
                 <div className="flex items-center text-sm font-medium">
-                    <span className="text-gray-500 hidden sm:inline-block">Dashboard / </span>
-                    <span className="text-gray-200 sm:ml-1.5">{displayTitle}</span>
+                    <OrganizationSwitcher />
                 </div>
             </div>
 

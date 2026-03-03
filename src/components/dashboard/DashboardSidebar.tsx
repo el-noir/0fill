@@ -20,7 +20,7 @@ function SidebarLinks() {
     ];
 
     return (
-        <nav className="flex-1 py-6 px-4 space-y-1">
+        <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto overscroll-contain">
             {links.map((link) => {
                 const isActive = pathname === link.href;
                 const Icon = link.icon;
@@ -46,8 +46,8 @@ function SidebarLinks() {
 export function DashboardSidebar() {
 
     return (
-        <aside className="w-64 flex-shrink-0 bg-[#0B0B0F] border-r border-gray-800/80 hidden md:flex flex-col">
-            <div className="h-16 flex items-center px-6 border-b border-gray-800/80">
+        <aside className="w-64 flex-shrink-0 bg-[#0B0B0F] border-r border-gray-800/80 hidden md:flex flex-col h-full">
+            <div className="h-16 flex items-center px-6 border-b border-gray-800/80 shrink-0">
                 <Link href="/" className="text-white font-semibold flex items-center gap-2.5 tracking-tight group">
                     <div className="relative w-6 h-6 rounded-md overflow-hidden group-hover:scale-110 transition-transform shrink-0">
                         <Image
@@ -61,11 +61,11 @@ export function DashboardSidebar() {
                 </Link>
             </div>
 
-            <Suspense fallback={<nav className="flex-1 py-6 px-4 space-y-1" />}>
+            <Suspense fallback={<nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto overscroll-contain" />}>
                 <SidebarLinks />
             </Suspense>
 
-            <div className="p-4 border-t border-gray-800/80">
+            <div className="p-4 border-t border-gray-800/80 shrink-0">
                 <div className="bg-[#111116] rounded-md p-4 text-sm border border-gray-800">
                     <div className="flex items-center justify-between mb-2">
                         <h4 className="text-gray-200 font-medium text-xs">Pro Plan</h4>
