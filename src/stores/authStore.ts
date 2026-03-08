@@ -16,7 +16,6 @@ interface AuthState {
   setAccessToken: (accessToken: string) => void;
   clearAuth: () => void;
   setLoading: (loading: boolean) => void;
-  initialize: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -66,16 +65,6 @@ export const useAuthStore = create<AuthState>()(
       // Set loading state
       setLoading: (loading) => {
         set({ isLoading: loading });
-      },
-
-      // Initialize auth state from storage
-      initialize: () => {
-        const state = get();
-        if (state.accessToken && state.user) {
-          set({ isAuthenticated: true, isLoading: false });
-        } else {
-          set({ isAuthenticated: false, isLoading: false });
-        }
       },
     }),
     {

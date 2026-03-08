@@ -5,6 +5,7 @@ const BASE = `/public/chat`;
 export const getPublicFormInfo = async (token: string) => {
     const res = await apiFetch(`${BASE}/${token}`);
     const data = await res.json();
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
     return data.data;
 };
 
@@ -17,6 +18,7 @@ export const startPublicChat = async (
         body: pageContext ? JSON.stringify(pageContext) : undefined,
     });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
     return data.data;
 };
 
@@ -26,5 +28,6 @@ export const sendPublicChatMessage = async (token: string, sessionId: string, me
         body: JSON.stringify({ sessionId, message }),
     });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
     return data.data;
 };
