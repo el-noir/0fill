@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Send, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface ChatInputProps {
@@ -79,7 +79,7 @@ export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping,
                     </form>
                 )}
                 <p className="text-center text-[10px] text-gray-700 mt-2">
-                    Powered by <span className="text-gray-600">Formless</span>
+                    Powered by <span className="text-gray-600">0Fill</span>
                 </p>
             </div>
         </footer>

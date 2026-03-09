@@ -9,12 +9,12 @@ export function Footer() {
             <div className="relative w-7 h-7 rounded-md overflow-hidden group-hover:scale-110 transition-transform shrink-0">
               <Image
                 src="/logo.png"
-                alt="Formless Logo"
+                alt="0Fill Logo"
                 fill
                 className="object-contain"
               />
             </div>
-            <span className="text-white font-semibold">Formless</span>
+            <span className="text-white font-semibold">0Fill</span>
           </a>
           <p>
             Transforming data collection with intelligent conversations.
@@ -52,7 +52,7 @@ export function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p>© 2026 Formless Inc. All rights reserved.</p>
+        <p>© 2026 0Fill Inc. All rights reserved.</p>
         <div className="flex gap-6">
           <a href="#" className="hover:text-white transition-colors">Twitter</a>
           <a href="#" className="hover:text-white transition-colors">GitHub</a>

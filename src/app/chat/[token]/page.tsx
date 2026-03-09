@@ -25,18 +25,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     if (!form) {
         return {
-            title: 'Form Not Found | Formless',
+            title: 'Form Not Found | 0Fill',
             description: 'The requested form could not be found or is inactive.',
         };
     }
 
-    const title = `${form.title} | Formless`;
+    const title = `${form.title} | 0Fill`;
     const description = form.description || 'Complete this form via an intelligent AI conversation.';
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://formless-frontend.vercel.app';
     const imageUrl = `${appUrl}/api/og?token=${token}`;
 
     return {
-        title: `${form.title} | Formless Chat`,
+        title: `${form.title} | 0Fill Chat`,
         description,
         openGraph: {
             title,

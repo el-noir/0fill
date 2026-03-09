@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
@@ -64,7 +64,7 @@ export function HeroDashboardReveal() {
                             <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
                             <div className="ml-auto flex items-center gap-1 bg-[#1C1C24] rounded px-2 py-0.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-brand-purple animate-pulse" />
-                                <span className="text-[9px] text-gray-500 font-mono">formless.app/dashboard</span>
+                                <span className="text-[9px] text-gray-500 font-mono">0Fill.app/dashboard</span>
                             </div>
                         </div>
 
@@ -72,7 +72,7 @@ export function HeroDashboardReveal() {
                         <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
                             <Image
                                 src="/dashboard.png"
-                                alt="Formless Dashboard Interface"
+                                alt="0Fill Dashboard Interface"
                                 fill
                                 className="object-cover object-left-top select-none filter brightness-[1.18] contrast-[1.08]"
                                 priority
@@ -135,7 +135,7 @@ export function HeroDashboardReveal() {
                             >
                                 <Image
                                     src="/dashboard.png"
-                                    alt="Formless Dashboard Interface"
+                                    alt="0Fill Dashboard Interface"
                                     fill
                                     className="object-left-top object-cover select-none filter brightness-[1.22] contrast-[1.1]"
                                     priority

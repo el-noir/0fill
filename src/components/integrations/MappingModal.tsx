@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { importGoogleForm } from "@/lib/api/integrations";
@@ -86,7 +86,7 @@ export function MappingModal({ isOpen, onClose, form }: MappingModalProps) {
                                 )}
 
                                 <p className="text-gray-300 text-sm leading-relaxed">
-                                    Clicking connect will setup a real-time sync with Google Forms. Any new submissions to <strong>{form?.name}</strong> will automatically appear in Formless with their original structure intact.
+                                    Clicking connect will setup a real-time sync with Google Forms. Any new submissions to <strong>{form?.name}</strong> will automatically appear in 0Fill with their original structure intact.
                                 </p>
                             </div>
                         )}

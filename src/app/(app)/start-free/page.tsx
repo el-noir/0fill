@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { ArrowRight, Send, Loader2 } from "lucide-react";
@@ -163,7 +163,7 @@ function StartFreeContent() {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                 <div>
-                  <h2 className="text-white font-medium text-lg tracking-wide">Formless Assistant</h2>
+                  <h2 className="text-white font-medium text-lg tracking-wide">0Fill Assistant</h2>
                   <p className="text-xs text-gray-400 font-medium">Session active</p>
                 </div>
               </div>

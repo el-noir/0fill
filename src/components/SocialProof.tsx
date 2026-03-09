@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import { motion } from 'motion/react';
@@ -31,7 +31,7 @@ export function SocialProof() {
             Trusted by Industry Leaders
           </p>
           <h2 className="text-2xl md:text-3xl font-bold text-white">
-            Join 2,000+ companies using Formless
+            Join 2,000+ companies using 0Fill
           </h2>
         </motion.div>
 

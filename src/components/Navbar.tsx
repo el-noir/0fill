@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect, useRef } from 'react';
@@ -83,13 +83,13 @@ export function Navbar() {
               <div className="relative w-8 h-8 rounded-[8px] overflow-hidden transition-all duration-300 shrink-0 flex items-center justify-center group-hover:scale-110 drop-shadow-[0_0_8px_rgba(16,185,129,0.4)] group-hover:drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]">
                 <Image
                   src="/logo.png"
-                  alt="Formless Logo"
+                  alt="0Fill Logo"
                   fill
                   className="object-cover"
                 />
               </div>
               <span className="text-base font-bold text-white tracking-tight group-hover:text-gray-200 transition-colors duration-300 md:hidden">
-                Formless
+                0Fill
               </span>
             </Link>
 

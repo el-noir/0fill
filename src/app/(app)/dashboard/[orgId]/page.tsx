@@ -102,7 +102,7 @@ function DashboardContent() {
             <Wand2 className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-gray-200 font-medium text-sm mb-0.5">Formless AI Concierge</h4>
+            <h4 className="text-gray-200 font-medium text-sm mb-0.5">0Fill AI Concierge</h4>
             <p className="text-gray-500 text-xs max-w-xl">Generate highly optimized, conversion-focused forms automatically by describing your use case.</p>
           </div>
         </div>

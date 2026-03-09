@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+﻿import { motion } from 'motion/react';
 import { User, Sparkles, ArrowDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -83,7 +83,7 @@ export function LivePreview() {
             {/* AI Output */}
             <div className="flex gap-4 items-start">
               <div className="relative w-10 h-10 rounded-md bg-brand-purple flex items-center justify-center shrink-0 mt-1 overflow-hidden">
-                <Image src="/logo.png" alt="Formless AI" fill className="object-contain p-1.5" />
+                <Image src="/logo.png" alt="0Fill AI" fill className="object-contain p-1.5" />
               </div>
               <div className="space-y-2 flex-1">
                 <div className="text-xs font-medium text-brand-purple uppercase tracking-wider">Structured Output</div>

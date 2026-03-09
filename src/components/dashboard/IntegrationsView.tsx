@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,7 @@ export function IntegrationsView() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div>
                     <h2 className="text-xl font-semibold text-gray-100 tracking-tight mb-1">Integrations</h2>
-                    <p className="text-gray-500 text-sm">Connect Formless with your favorite tools</p>
+                    <p className="text-gray-500 text-sm">Connect 0Fill with your favorite tools</p>
                 </div>
             </div>
 
@@ -50,7 +50,7 @@ export function IntegrationsView() {
                     </div>
 
                     <p className="text-xs text-gray-500 mb-5 flex-grow leading-relaxed">
-                        Sync your Google Forms submissions directly to Formless in real-time. Map fields seamlessly.
+                        Sync your Google Forms submissions directly to 0Fill in real-time. Map fields seamlessly.
                     </p>
 
                     <button
@@ -99,7 +99,7 @@ export function IntegrationsView() {
                         </div>
                     </div>
                     <p className="text-xs text-gray-600 mb-5 flex-grow leading-relaxed">
-                        Automate workflows by connecting Formless to thousands of apps through Zapier.
+                        Automate workflows by connecting 0Fill to thousands of apps through Zapier.
                     </p>
                     <button disabled className="w-full py-2 px-3 bg-transparent text-gray-700 text-xs font-medium rounded border border-gray-800/50 cursor-not-allowed">
                         Not Available

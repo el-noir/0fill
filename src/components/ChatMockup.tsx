@@ -83,10 +83,10 @@ export function ChatMockup() {
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-800">
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 rounded-md bg-brand-purple flex items-center justify-center overflow-hidden">
-                <Image src="/logo.png" alt="Formless Logo" fill className="object-contain p-1.5" />
+                <Image src="/logo.png" alt="0Fill Logo" fill className="object-contain p-1.5" />
               </div>
               <div>
-                <h3 className="text-white font-semibold text-sm">Formless Assistant</h3>
+                <h3 className="text-white font-semibold text-sm">0Fill Assistant</h3>
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                   <span className="text-xs text-gray-400 font-medium">{currentScenario.type}</span>
@@ -159,7 +159,7 @@ export function ChatMockup() {
             <div className="relative flex items-center">
               <input
                 type="text"
-                placeholder="Message Formless..."
+                placeholder="Message 0Fill..."
                 className="w-full bg-brand-surface border border-white/10 rounded-full px-5 py-3.5 pr-12 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-brand-purple/50 transition-colors shadow-inner"
                 disabled
               />

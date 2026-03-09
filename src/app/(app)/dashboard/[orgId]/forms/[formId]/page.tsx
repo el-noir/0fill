@@ -290,7 +290,7 @@ export default function OrgFormViewerPage() {
                                 <Code className="w-5 h-5 text-brand-purple" />
                             </div>
                             <div>
-                                <h3 className="text-white font-medium text-sm">Add Formless to your website</h3>
+                                <h3 className="text-white font-medium text-sm">Add 0Fill to your website</h3>
                                 <p className="text-gray-500 text-[11px]">One script tag. Full conversational AI.</p>
                             </div>
                         </div>

@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og';
 export const runtime = 'edge';
 
 // Image metadata
-export const alt = 'Formless AI Chat';
+export const alt = '0Fill AI Chat';
 export const size = {
     width: 1200,
     height: 630,
@@ -44,7 +44,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
                         color: 'white',
                     }}
                 >
-                    <h1 style={{ fontSize: 60, fontWeight: 'bold' }}>Formless</h1>
+                    <h1 style={{ fontSize: 60, fontWeight: 'bold' }}>0Fill</h1>
                     <p style={{ fontSize: 32, color: '#a1a1aa' }}>Intelligent AI Forms</p>
                 </div>
             ),
@@ -52,7 +52,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
         );
     }
 
-    const aiName = form.aiName || 'Formless Assistant';
+    const aiName = form.aiName || '0Fill Assistant';
     const title = form.title || 'Untitled Form';
 
     return new ImageResponse(
@@ -90,7 +90,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
                         </svg>
                     </div>
                     <span style={{ color: '#0da372', fontSize: 40, fontWeight: 'bold', letterSpacing: '-0.02em' }}>
-                        Formless
+                        0Fill
                     </span>
                 </div>
 

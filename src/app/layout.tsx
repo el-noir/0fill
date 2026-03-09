@@ -16,7 +16,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Formless - Turn Forms Into AI Conversations | No-Code Form Builder",
+  title: "0Fill - Turn Forms Into AI Conversations | No-Code Form Builder",
   description: "Transform static Google Forms into intelligent AI-driven chat experiences that collect structured data automatically. No coding required. Trusted by 2,000+ companies.",
   keywords: [
     "AI forms",
@@ -30,26 +30,26 @@ export const metadata: Metadata = {
     "form automation",
     "customer surveys"
   ],
-  authors: [{ name: "Formless Team" }],
-  creator: "Formless",
-  publisher: "Formless Inc.",
-  metadataBase: new URL('https://Formless.app'),
+  authors: [{ name: "0Fill Team" }],
+  creator: "0Fill",
+  publisher: "0Fill Inc.",
+  metadataBase: new URL('https://0fill.ai'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://formless.app',
-    title: 'Formless - Turn Forms Into AI Conversations',
+    url: 'https://0fill.ai',
+    title: '0Fill - Turn Forms Into AI Conversations',
     description: 'Transform static Google Forms into intelligent AI-driven chat experiences. No coding required. Trusted by 2,000+ companies.',
-    siteName: 'Formless',
+    siteName: '0Fill',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Formless - Turn Forms Into AI Conversations',
+    title: '0Fill - Turn Forms Into AI Conversations',
     description: 'Transform static Google Forms into intelligent AI-driven chat experiences. No coding required.',
-    creator: '@Formless',
+    creator: '@0Fill',
   },
   robots: {
     index: true,

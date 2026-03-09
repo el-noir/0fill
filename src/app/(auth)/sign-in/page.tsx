@@ -85,7 +85,7 @@ function SignInContent() {
                 Welcome back
               </h1>
               <p className="text-gray-400 text-lg">
-                Continue building with <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple via-brand-purple to-brand-gold font-medium">Formless</span>
+                Continue building with <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple via-brand-purple to-brand-gold font-medium">0Fill</span>
               </p>
             </div>
             <ChatMockup />
@@ -105,7 +105,7 @@ function SignInContent() {
               <div className="mb-8">
                 <Link href="/" className="inline-block mb-8 group focus:outline-none focus:ring-2 focus:ring-brand-purple rounded-lg">
                   <div className="relative w-12 h-12 rounded-xl border border-white/10 bg-[#0B0B0F]/50 flex items-center justify-center shadow-lg group-hover:scale-105 transition-all overflow-hidden p-2">
-                    <Image src="/logo.png" alt="Formless Logo" fill className="object-contain p-2" />
+                    <Image src="/logo.png" alt="0Fill Logo" fill className="object-contain p-2" />
                   </div>
                 </Link>
                 <h1 className="text-3xl font-bold text-white mb-2">

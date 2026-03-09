@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+﻿import { motion } from 'motion/react';
 import { SlackLogo, NotionLogo, GitHubLogo, DiscordLogo, LinearLogo } from './ui/BrandIcons';
 
 const integrations = [
@@ -17,7 +17,7 @@ export function Integrations() {
       <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
         <h2 id="integrations-title" className="text-3xl md:text-5xl font-bold text-white mb-6">Seamless Integrations</h2>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-16">
-          Connect Formless with the tools you already use. No code required.
+          Connect 0Fill with the tools you already use. No code required.
         </p>
 
         <div className="flex flex-wrap justify-center gap-4 md:gap-8">

@@ -88,7 +88,7 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                 <Background />
                 <div className="max-w-sm w-full relative z-10 flex flex-col gap-8">
                     <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 font-medium">Formless</span>
+                        <span className="text-xs text-gray-500 font-medium">0Fill</span>
                     </div>
                     <div>
                         <div className="mb-5 flex items-center gap-3">

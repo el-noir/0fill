@@ -52,12 +52,12 @@ export function DashboardSidebar() {
                     <div className="relative w-6 h-6 rounded-md overflow-hidden group-hover:scale-110 transition-transform shrink-0">
                         <Image
                             src="/logo.png"
-                            alt="Formless Logo"
+                            alt="0Fill Logo"
                             fill
                             className="object-contain"
                         />
                     </div>
-                    Formless
+                    0Fill
                 </Link>
             </div>
 
