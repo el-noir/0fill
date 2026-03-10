@@ -1,11 +1,13 @@
 ﻿'use client';
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { ArrowRight, Send, Loader2 } from "lucide-react";
+import { ArrowRight, Send, Loader2, RotateCcw } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from 'next/navigation';
 import { Background } from '@/components/Background';
 import { startChat, replyChat } from '@/lib/api/chat';
+import { ChatProgress } from '@/components/chat/ChatProgress';
+import { ProgressDetail } from '@/components/chat/types';
 
 type CheckFreeForm = {
   url: string;
@@ -26,6 +28,9 @@ function StartFreeContent() {
   const [collectedData, setCollectedData] = useState<Record<string, string> | null>(null);
   const [sendingMsg, setSendingMsg] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [chatState, setChatState] = useState<string>('IDLE');
+  const [progressDetail, setProgressDetail] = useState<ProgressDetail | null>(null);
+  const [formTitle, setFormTitle] = useState<string>('');
   const searchParams = useSearchParams();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -53,6 +58,11 @@ function StartFreeContent() {
     try {
       const response = await startChat(data.url);
       setSessionId(response.sessionId);
+      setChatState(response.state || 'IN_PROGRESS');
+      setFormTitle(response.formTitle || '');
+      if (response.progressDetail) {
+        setProgressDetail(response.progressDetail);
+      }
       setMessages([{ id: Date.now().toString(), role: 'assistant', content: response.message }]);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to start conversation from the URL.");
@@ -88,8 +98,16 @@ function StartFreeContent() {
       const assistantMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'assistant', content: response.message };
       setMessages(prev => [...prev, assistantMsg]);
 
+      if (response.state) {
+        setChatState(response.state);
+      }
+      if (response.progressDetail) {
+        setProgressDetail(response.progressDetail);
+      }
+
       if (response.isComplete) {
         setIsComplete(true);
+        setChatState('COMPLETED');
         setCollectedData(response.collectedData);
       }
     } catch (err: any) {
@@ -98,6 +116,17 @@ function StartFreeContent() {
     } finally {
       setSendingMsg(false);
     }
+  };
+
+  const handleRestart = () => {
+    setSessionId(null);
+    setMessages([]);
+    setIsComplete(false);
+    setCollectedData(null);
+    setChatState('IDLE');
+    setProgressDetail(null);
+    setFormTitle('');
+    setError('');
   };
 
   return (
@@ -158,21 +187,41 @@ function StartFreeContent() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col bg-[#0B0B0F]/90 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl ring-1 ring-white/5 mx-auto w-full max-w-4xl h-[700px] max-h-[85vh]">
-            {/* Header */}
-            <div className="p-5 border-b border-white/10 bg-[#15151A]/80 backdrop-blur-sm flex justify-between items-center z-10 relative">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <div>
-                  <h2 className="text-white font-medium text-lg tracking-wide">0Fill Assistant</h2>
-                  <p className="text-xs text-gray-400 font-medium">Session active</p>
+            {/* Header with progress */}
+            <div className="shrink-0">
+              <div className="p-5 border-b border-white/10 bg-[#15151A]/80 backdrop-blur-sm flex justify-between items-center z-10 relative">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></div>
+                  <div className="min-w-0">
+                    <h2 className="text-white font-medium text-lg tracking-wide truncate">
+                      {formTitle || '0Fill Assistant'}
+                    </h2>
+                    <p className="text-xs text-gray-400 font-medium">
+                      {chatState === 'COMPLETED' ? (
+                        <span className="text-emerald-400">Completed</span>
+                      ) : chatState === 'ERROR' ? (
+                        <span className="text-red-400">Submission failed</span>
+                      ) : progressDetail ? (
+                        <span>{progressDetail.percentage}% complete</span>
+                      ) : (
+                        'Session active'
+                      )}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={handleRestart}
+                  className="text-xs text-gray-300 hover:text-white transition-all px-4 py-2 border border-white/10 rounded-lg bg-[#252530]/50 hover:bg-[#252530] flex items-center gap-2 shrink-0"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Restart
+                </button>
               </div>
-              <button
-                onClick={() => { setSessionId(null); setMessages([]); setIsComplete(false); setCollectedData(null); setError(''); }}
-                className="text-xs text-gray-300 hover:text-white transition-all px-4 py-2 border border-white/10 rounded-lg bg-[#252530]/50 hover:bg-[#252530] flex items-center gap-2"
-              >
-                Restart Session
-              </button>
+
+              {/* Progress panel */}
+              {progressDetail && chatState !== 'COMPLETED' && (
+                <ChatProgress progressDetail={progressDetail} chatState={chatState} />
+              )}
             </div>
 
             {/* Chat History */}

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ProgressDetail } from './types';
+import { ProgressDetail, SectionProgress } from './types';
 
 interface ChatProgressProps {
     progressDetail: ProgressDetail;
@@ -133,8 +133,61 @@ function ProgressBar({ percentage }: { percentage: number }) {
     );
 }
 
+/** Page stepper for multi-page/section forms */
+function PageStepper({ progressDetail }: { progressDetail: ProgressDetail }) {
+    if (!progressDetail.sections || progressDetail.sections.length <= 1) return null;
+
+    const currentSection = progressDetail.sections[progressDetail.currentPage - 1];
+
+    return (
+        <div className="space-y-2">
+            {/* Step circles with connectors */}
+            <div className="flex items-center justify-center gap-1">
+                {progressDetail.sections.map((section, i) => (
+                    <div key={section.sectionId} className="flex items-center gap-1">
+                        <div
+                            title={section.title}
+                            className={cn(
+                                'w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300',
+                                section.status === 'completed' && 'bg-emerald-500 text-white',
+                                section.status === 'current' && 'bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500/30',
+                                section.status === 'upcoming' && 'bg-gray-800 text-gray-500',
+                            )}
+                        >
+                            {section.status === 'completed' ? (
+                                <Check className="w-3.5 h-3.5" />
+                            ) : (
+                                section.pageNumber
+                            )}
+                        </div>
+                        {i < progressDetail.sections!.length - 1 && (
+                            <div
+                                className={cn(
+                                    'h-0.5 w-5 rounded-full transition-all duration-500',
+                                    section.status === 'completed' ? 'bg-emerald-500' : 'bg-gray-800',
+                                )}
+                            />
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* Current section label */}
+            {currentSection && (
+                <p className="text-center text-[11px] text-emerald-400/80 font-medium">
+                    Page {progressDetail.currentPage}: {currentSection.title}
+                    <span className="text-gray-600 ml-1.5">
+                        ({currentSection.answeredCount}/{currentSection.totalFields})
+                    </span>
+                </p>
+            )}
+        </div>
+    );
+}
+
 /**
  * Smart progress component that adapts to the number of fields:
+ * - Multi-page forms → page stepper + progress bar + adaptive detail
  * - ≤5 fields  → step list with labels + progress bar
  * - 6-15 fields → dot indicator + progress bar
  * - 15+ fields  → progress bar + text counter
@@ -143,9 +196,15 @@ export function ChatProgress({ progressDetail, chatState }: ChatProgressProps) {
     const label = getStateLabel(chatState, progressDetail);
     const totalFields = progressDetail.totalFields;
     const isDone = chatState === 'COMPLETED' || chatState === 'CONFIRMING' || chatState === 'READY_TO_SUBMIT';
+    const hasMultiplePages = progressDetail.sections && progressDetail.sections.length > 1;
 
     return (
         <div className="px-4 py-3 space-y-2.5 border-b border-gray-800/60 bg-[#0B0B0F]/80 backdrop-blur-sm">
+            {/* Page stepper — only for multi-page forms */}
+            {hasMultiplePages && !isDone && (
+                <PageStepper progressDetail={progressDetail} />
+            )}
+
             {/* Top row: label + percentage */}
             <div className="flex items-center justify-between">
                 <span className={cn(

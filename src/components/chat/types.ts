@@ -5,6 +5,17 @@ export interface FieldProgress {
     label: string;
     status: 'completed' | 'current' | 'upcoming' | 'skipped';
     questionNumber: number;
+    sectionIndex: number;
+}
+
+export interface SectionProgress {
+    sectionId: string;
+    title: string;
+    status: 'completed' | 'current' | 'upcoming';
+    percentage: number;
+    answeredCount: number;
+    totalFields: number;
+    pageNumber: number;
 }
 
 export interface ProgressDetail {
@@ -13,6 +24,9 @@ export interface ProgressDetail {
     totalFields: number;
     currentFieldIndex: number;
     fields: FieldProgress[];
+    sections?: SectionProgress[];
+    totalPages: number;
+    currentPage: number;
 }
 
 export interface Message {
