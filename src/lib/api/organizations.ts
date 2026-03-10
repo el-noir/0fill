@@ -218,3 +218,29 @@ export const setLinkExpiry = async (
     }
     return res.json();
 };
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+export const getDashboardStats = async (orgId: string, params?: { days?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.days) query.set('days', String(params.days));
+    const qs = query.toString() ? `?${query}` : '';
+    const res = await apiFetch(`${BASE(orgId)}/dashboard/stats${qs}`);
+    if (!res.ok) throw new Error('Failed to fetch dashboard stats');
+    const data = await res.json();
+    return data.data;
+};
+
+export const getDashboardActivity = async (
+    orgId: string,
+    params?: { page?: number; pageSize?: number },
+) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+    const qs = query.toString() ? `?${query}` : '';
+    const res = await apiFetch(`${BASE(orgId)}/dashboard/activity${qs}`);
+    if (!res.ok) throw new Error('Failed to fetch dashboard activity');
+    const data = await res.json();
+    return data.data;
+};
