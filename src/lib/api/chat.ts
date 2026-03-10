@@ -21,43 +21,39 @@ export interface ReplyChatResponse {
 }
 
 export async function startChat(url: string): Promise<StartChatResponse> {
-    try {
-        const response = await axios.post(`${API_BASE_URL}/ai/form/start`, { url }, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        const data = response.data;
-        return {
-            sessionId: data.sessionId,
-            message: data.message,
-            formTitle: data.formTitle,
-            totalFields: data.totalFields,
-            estimatedMinutes: data.estimatedMinutes,
-            state: data.state,
-            progressDetail: data.progressDetail,
-        };
-    } catch (error) {
-        throw error;
-    }
+    const response = await axios.post(`${API_BASE_URL}/conversation/start`, { url }, {
+        headers: { 'Content-Type': 'application/json' },
+    });
+
+    // Backend wraps: { success, data: { sessionId, message, progressDetail, ... } }
+    const payload = response.data?.data ?? response.data;
+
+    return {
+        sessionId: payload.sessionId,
+        message: payload.message ?? payload.greeting?.content ?? '',
+        formTitle: payload.formTitle,
+        totalFields: payload.totalFields ?? payload.progressDetail?.totalFields,
+        estimatedMinutes: payload.estimatedMinutes,
+        state: payload.state,
+        progressDetail: payload.progressDetail,
+    };
 }
 
 export async function replyChat(sessionId: string, message: string): Promise<ReplyChatResponse> {
-    try {
-        const response = await axios.post(`${API_BASE_URL}/ai/form/reply`, { sessionId, message }, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        const data = response.data;
-        return {
-            message: data.message,
-            isComplete: data.isComplete,
-            collectedData: data.collectedData,
-            state: data.state,
-            progressDetail: data.progressDetail,
-        };
-    } catch (error) {
-        throw error;
-    }
+    const response = await axios.post(
+        `${API_BASE_URL}/conversation/${sessionId}/message`,
+        { message },
+        { headers: { 'Content-Type': 'application/json' } },
+    );
+
+    // Backend wraps: { success, data: { reply, state, progressDetail, isComplete, ... } }
+    const payload = response.data?.data ?? response.data;
+
+    return {
+        message: payload.message ?? payload.reply?.content ?? '',
+        isComplete: payload.isComplete ?? (payload.state === 'COMPLETED'),
+        collectedData: payload.collectedData ?? payload.reply?.metadata?.collectedData ?? {},
+        state: payload.state,
+        progressDetail: payload.progressDetail,
+    };
 }
