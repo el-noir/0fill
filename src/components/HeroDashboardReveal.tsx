@@ -134,7 +134,7 @@ export function HeroDashboardReveal() {
                                 style={{ transformStyle: 'preserve-3d' }}
                             >
                                 <Image
-                                    src="/dashboard.png"
+                                    src="/image.png"
                                     alt="0Fill Dashboard Interface"
                                     fill
                                     className="object-left-top object-cover select-none filter brightness-[1.22] contrast-[1.1]"

@@ -17,7 +17,7 @@ export function FinalCTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-4xl md:text-6xl font-bold tracking-tight text-white mb-8 leading-tight"
+          className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight text-white mb-8 leading-tight"
         >
           Forms were built for fields.<br />
           <span className="text-gray-500">We built them for conversations.</span>
@@ -28,15 +28,15 @@ export function FinalCTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2, duration: 0.8 }}
-          className="flex justify-center gap-4"
+          className="flex flex-col sm:flex-row justify-center items-center gap-4"
         >
-          <MagneticButton className="px-10 py-4 bg-brand-purple hover:bg-[#0da372] text-white font-semibold rounded-full text-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-purple/30 shadow-[0_0_20px_theme(colors.brand.purple/30)]">
-            <a href="/start-free" className="flex items-center gap-2">
+          <MagneticButton className="w-full sm:w-auto px-10 py-4 bg-brand-purple hover:bg-[#0da372] text-white font-semibold rounded-full text-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-purple/30 shadow-[0_0_20px_theme(colors.brand.purple/30)]">
+            <a href="/start-free" className="flex items-center justify-center gap-2">
               Get Started Free <ArrowRight className="w-5 h-5" />
             </a>
           </MagneticButton>
-          <MagneticButton className="px-10 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-full border border-white/10 text-lg transition-all focus:outline-none focus:ring-4 focus:ring-white/10">
-            <a href="/contact" className="flex items-center gap-2">
+          <MagneticButton className="w-full sm:w-auto px-10 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-full border border-white/10 text-lg transition-all focus:outline-none focus:ring-4 focus:ring-white/10">
+            <a href="/contact" className="flex items-center justify-center gap-2">
               Contact Sales
             </a>
           </MagneticButton>
