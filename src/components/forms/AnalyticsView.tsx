@@ -399,7 +399,8 @@ function DrillPanel({
 
 type Tab = "summary" | "questions" | "responses";
 
-function formatTime(secs: number): string {
+function formatTime(secs: number | null | undefined): string {
+    if (secs == null) return "—";
     if (secs < 60) return `${secs}s`;
     const m = Math.floor(secs / 60);
     const s = secs % 60;
@@ -559,7 +560,7 @@ export function AnalyticsView({
                                 <KPICard label="Total Responses" value={overview.totalResponses} />
                                 <KPICard
                                     label="Completion Rate"
-                                    value={`${overview.completionRate.toFixed(1)}%`}
+                                    value={`${(overview.completionRate ?? 0).toFixed(1)}%`}
                                 />
                                 <KPICard
                                     label="Avg Completion Time"
@@ -574,7 +575,7 @@ export function AnalyticsView({
 
                             {/* Status breakdown */}
                             <div className="flex gap-2 flex-wrap">
-                                {Object.entries(overview.statusBreakdown).map(([status, count]) => (
+                                {Object.entries(overview.statusBreakdown || {}).map(([status, count]) => (
                                     <span
                                         key={status}
                                         className={`text-xs font-medium px-3 py-1 rounded-full border ${
