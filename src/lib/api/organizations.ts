@@ -385,3 +385,24 @@ export const getDashboardActivity = async (
     const data = await res.json();
     return data.data;
 };
+
+// ─── Automations ─────────────────────────────────────────────────────────────
+
+export const getFormAutomations = async (orgId: string, formId: string) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/automations`);
+    if (!res.ok) throw new Error('Failed to fetch automations');
+    return res.json();
+};
+
+export const syncFormAutomations = async (orgId: string, formId: string, automations: any[]) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/automations/sync`, {
+        method: 'POST',
+        body: JSON.stringify({ automations }),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to sync automations');
+    }
+    return res.json();
+};
+

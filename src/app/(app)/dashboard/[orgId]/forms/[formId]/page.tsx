@@ -11,6 +11,7 @@ import { useRequireAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 import { getOrgForm, getFormResponses, saveChatConfig } from "@/lib/api/organizations";
 import { ResponsesList } from "@/components/forms/ResponsesList";
+import { AutomationPanel } from "@/components/forms/AutomationPanel";
 import { DashboardBreadcrumbs } from "@/components/dashboard/DashboardBreadcrumbs";
 import { toast } from "sonner";
 
@@ -38,7 +39,7 @@ export default function OrgFormViewerPage() {
     const [loading, setLoading] = useState(true);
     const [responsesLoading, setResponsesLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'fields' | 'responses' | 'details' | 'embed'>('fields');
+    const [activeTab, setActiveTab] = useState<'fields' | 'responses' | 'details' | 'embed' | 'automations'>('fields');
 
     // Domain whitelist state
     const [allowedDomains, setAllowedDomains] = useState<string[]>([]);
@@ -191,6 +192,7 @@ export default function OrgFormViewerPage() {
                         { id: 'fields', label: `Fields (${fields.length})` },
                         { id: 'responses', label: `Responses (${form.submissionCount ?? 0})` },
                         { id: 'embed', label: 'Embed' },
+                        { id: 'automations', label: 'Automations' },
                         { id: 'details', label: 'Details' },
                     ].map((tab) => (
                         <button
@@ -261,6 +263,16 @@ export default function OrgFormViewerPage() {
                 {/* Responses Tab */}
                 {activeTab === 'responses' && (
                     <ResponsesList responses={responses} loading={responsesLoading} formTitle={form?.title} />
+                )}
+
+                {/* Automations Tab */}
+                {activeTab === 'automations' && (
+                    <AutomationPanel 
+                        orgId={orgId} 
+                        formId={formId} 
+                        form={form} 
+                        onUpdate={(updatedForm) => setForm(updatedForm)} 
+                    />
                 )}
 
                 {/* Details Tab */}
