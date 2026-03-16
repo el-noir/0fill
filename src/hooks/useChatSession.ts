@@ -9,6 +9,7 @@ interface FormInfo {
     estimatedMinutes?: number;
     aiName?: string;
     aiAvatar?: string;
+    removeBranding?: boolean;
 }
 
 import { toast } from 'sonner';

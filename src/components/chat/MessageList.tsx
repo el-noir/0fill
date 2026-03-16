@@ -1,6 +1,7 @@
 import React from 'react';
 import { MessageItem } from './MessageItem';
 import { Message } from './types';
+import { Sparkles } from 'lucide-react';
 
 interface MessageListProps {
     messages: Message[];
@@ -32,8 +33,11 @@ export function MessageList({ messages, isTyping, messagesEndRef, aiName, aiAvat
                 {/* Typing indicator */}
                 {isTyping && (
                     <div className="flex gap-3 items-start">
-                        <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-sm shrink-0 pt-0.5">
-                            {aiAvatar || '✦'}
+                        <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-sm shrink-0 pt-0.5 overflow-hidden">
+                            {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
+                                ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
+                                : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-3.5 h-3.5 text-emerald-500" />)
+                            }
                         </div>
                         <div className="bg-[#111116] border border-gray-800 rounded-2xl rounded-tl-none px-4 py-3">
                             <div className="flex gap-1 items-center h-4">

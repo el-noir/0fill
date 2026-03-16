@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { Background } from '@/components/Background';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { MessageList } from '@/components/chat/MessageList';
 import { ChatInput } from '@/components/chat/ChatInput';
@@ -40,6 +40,9 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
         }
     }, [isEmbed, loadingInfo, formInfo, chatState]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    const aiName: string = formInfo?.aiName || 'Assistant';
+    const aiAvatar: string | undefined = formInfo?.aiAvatar as string | undefined;
+
     /* ── Loading / Auto-starting ─────────────────────── */
     if (loadingInfo || (isEmbed && (chatState === 'IDLE' || chatState === 'STARTING'))) {
         return (
@@ -47,8 +50,11 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                 {/* Slim AI header for embed */}
                 {isEmbed && formInfo && (
                     <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-base shrink-0">
-                            {formInfo.aiAvatar || '✦'}
+                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-base shrink-0 overflow-hidden">
+                            {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
+                                ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
+                                : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-4 h-4 text-emerald-500/80" />)
+                            }
                         </div>
                         <div>
                             <p className="text-xs font-semibold text-white leading-none">{formInfo.aiName || 'Assistant'}</p>
@@ -80,9 +86,6 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
         );
     }
 
-    const aiName: string = formInfo.aiName || 'Assistant';
-    const aiAvatar: string | undefined = formInfo.aiAvatar as string | undefined;
-
     /* ── Standalone Welcome Screen (non-embed only) ── */
     if (!isEmbed && (chatState === 'IDLE' || chatState === 'STARTING')) {
         return (
@@ -94,8 +97,11 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                     </div>
                     <div>
                         <div className="mb-5 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-lg shrink-0">
-                                {aiAvatar || '✦'}
+                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-lg shrink-0 overflow-hidden">
+                                {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
+                                    ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
+                                    : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-5 h-5 text-emerald-500/80" />)
+                                }
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500">{aiName}</p>
@@ -135,8 +141,11 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
             {/* Embed: slim top bar instead of full ChatHeader */}
             {isEmbed ? (
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-base shrink-0">
-                        {aiAvatar || '✦'}
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-base shrink-0 overflow-hidden">
+                        {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
+                            ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
+                            : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-4 h-4 text-emerald-500/80" />)
+                        }
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-white leading-none truncate">{aiName}</p>
@@ -155,6 +164,7 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                     chatState={chatState}
                     progress={progress}
                     progressDetail={progressDetail}
+                    removeBranding={formInfo.removeBranding}
                 />
             )}
 
@@ -175,6 +185,7 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                 isTyping={isTyping}
                 chatState={chatState}
                 isEmbed={isEmbed}
+                removeBranding={formInfo.removeBranding}
             />
         </div>
     );

@@ -20,6 +20,7 @@ interface ChatPreviewProps {
     welcomeMessage: string;
     tone: Tone;
     fields: Field[];
+    removeBranding?: boolean;
 }
 
 // Turn a field into the AI's question for it
@@ -82,7 +83,8 @@ function buildMessages(formTitle: string, aiName: string, tone: Tone, welcomeMes
     return messages;
 }
 
-export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone, fields }: ChatPreviewProps) {
+export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone, fields, removeBranding }: ChatPreviewProps) {
+    const isUrl = aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/');
     const messages = useMemo(
         () => buildMessages(formTitle, aiName, tone, welcomeMessage, fields),
         [formTitle, aiName, tone, welcomeMessage, fields]
@@ -110,8 +112,8 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
                 >
                     {/* Chat topbar */}
                     <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800/80 bg-[#0B0B0F] shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-base">
-                            {aiAvatar}
+                        <div className="w-8 h-8 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-base overflow-hidden">
+                            {isUrl ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" /> : aiAvatar}
                         </div>
                         <div>
                             <p className="text-xs font-medium text-white">{aiName || "AI Assistant"}</p>
@@ -120,9 +122,11 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
                                 <p className="text-[10px] text-gray-500">Online</p>
                             </div>
                         </div>
-                        <div className="ml-auto">
-                            <Sparkles className="w-4 h-4 text-brand-purple/50" />
-                        </div>
+                        {!removeBranding && (
+                          <div className="ml-auto">
+                              <Sparkles className="w-4 h-4 text-brand-purple/50" />
+                          </div>
+                        )}
                     </div>
 
                     {/* Messages */}
@@ -138,8 +142,8 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
                                 }}
                             >
                                 {msg.role === "ai" && (
-                                    <div className="w-6 h-6 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                                        {aiAvatar}
+                                    <div className="w-6 h-6 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-xs shrink-0 mt-0.5 overflow-hidden">
+                                        {isUrl ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" /> : aiAvatar}
                                     </div>
                                 )}
                                 <div
@@ -162,8 +166,8 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
                                 opacity: 0,
                             }}
                         >
-                            <div className="w-6 h-6 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                                {aiAvatar}
+                            <div className="w-6 h-6 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-xs shrink-0 mt-0.5 overflow-hidden">
+                                {isUrl ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" /> : aiAvatar}
                             </div>
                             <div className="px-3 py-2.5 rounded-2xl rounded-tl-sm bg-[#1C1C22] border border-gray-800 flex gap-1 items-center">
                                 <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -176,13 +180,20 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
 
                     {/* Input bar */}
                     <div className="px-3 py-3 border-t border-gray-800/80 bg-[#0B0B0F] shrink-0">
-                        <div className="flex items-center gap-2 bg-[#111116] border border-gray-800 rounded-xl px-3 py-2">
-                            <span className="text-xs text-gray-600 flex-1">Type a message...</span>
-                            <div className="w-6 h-6 rounded-full bg-brand-purple flex items-center justify-center opacity-40">
-                                <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3">
-                                    <path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2 bg-[#111116] border border-gray-800 rounded-xl px-3 py-2">
+                                <span className="text-xs text-gray-600 flex-1">Type a message...</span>
+                                <div className="w-6 h-6 rounded-full bg-brand-purple flex items-center justify-center opacity-40">
+                                    <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3">
+                                        <path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                </div>
                             </div>
+                            {!removeBranding && (
+                                <p className="text-center text-[8px] text-gray-700">
+                                    Powered by <span className="text-gray-600">0Fill</span>
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

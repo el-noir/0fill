@@ -2,6 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { Message } from './types';
+import { Sparkles } from 'lucide-react';
 
 interface MessageItemProps {
     message: Message;
@@ -22,8 +23,11 @@ export function MessageItem({ message, aiName, aiAvatar, isEmbed = false }: Mess
                         <span className="text-[10px] font-semibold text-gray-300">You</span>
                     </div>
                 ) : (
-                    <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-sm leading-none">
-                        {aiAvatar || '✦'}
+                    <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-sm leading-none overflow-hidden shrink-0">
+                        {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
+                            ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
+                            : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-3.5 h-3.5 text-emerald-500" />)
+                        }
                     </div>
                 )}
             </div>

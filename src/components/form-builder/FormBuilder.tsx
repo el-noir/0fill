@@ -4,11 +4,12 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { BuilderHeader } from "./BuilderHeader";
 import { PersonaTab, type Tone } from "./config/PersonaTab";
 import { WelcomeTab } from "./config/WelcomeTab";
+import { DesignTab } from "./config/DesignTab";
 import { ShareTab } from "./config/ShareTab";
 import { ChatPreview } from "./preview/ChatPreview";
 import { GeneratingOverlay } from "./GeneratingOverlay";
 import { generateChatLink, saveChatConfig } from "@/lib/api/organizations";
-import { User, MessageCircle, Share2, Save } from "lucide-react";
+import { User, MessageCircle, Share2, Save, Palette } from "lucide-react";
 
 interface FormBuilderProps {
     form: any;
@@ -16,11 +17,12 @@ interface FormBuilderProps {
     formId: string;
 }
 
-type Tab = "persona" | "welcome" | "share";
+type Tab = "persona" | "welcome" | "design" | "share";
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "persona", label: "Persona", icon: User },
     { id: "welcome", label: "Welcome", icon: MessageCircle },
+    { id: "design", label: "Design", icon: Palette },
     { id: "share", label: "Publish", icon: Share2 },
 ];
 
@@ -39,6 +41,7 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
     const [tone, setTone] = useState<Tone>(saved.tone ?? "friendly");
     const [avatar, setAvatar] = useState<string>(saved.avatar ?? "✨");
     const [welcomeMessage, setWelcomeMessage] = useState<string>(saved.welcomeMessage ?? "");
+    const [removeBranding, setRemoveBranding] = useState<boolean>(saved.removeBranding ?? false);
 
     // Persist state
     const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -62,7 +65,7 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
     }, []);
 
     // Debounced auto-save whenever config changes
-    const doSave = useCallback(async (config: { aiName: string; tone: Tone; avatar: string; welcomeMessage: string }) => {
+    const doSave = useCallback(async (config: { aiName: string; tone: Tone; avatar: string; welcomeMessage: string; removeBranding: boolean }) => {
         setSaveStatus("saving");
         try {
             await saveChatConfig(orgId, formId, config);
@@ -78,9 +81,9 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
         // Skip save on very first render (the initial seed from chatConfig)
         if (isFirstRender.current) { isFirstRender.current = false; return; }
         if (saveTimer.current) clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(() => doSave({ aiName, tone, avatar, welcomeMessage }), AUTOSAVE_DEBOUNCE_MS);
+        saveTimer.current = setTimeout(() => doSave({ aiName, tone, avatar, welcomeMessage, removeBranding }), AUTOSAVE_DEBOUNCE_MS);
         return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-    }, [aiName, tone, avatar, welcomeMessage, doSave]);
+    }, [aiName, tone, avatar, welcomeMessage, removeBranding, doSave]);
 
     const handlePublish = async () => {
         setIsPublishing(true);
@@ -161,6 +164,14 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
                         {activeTab === "welcome" && (
                             <WelcomeTab message={welcomeMessage} formTitle={form.title} onChange={setWelcomeMessage} />
                         )}
+                        {activeTab === "design" && (
+                            <DesignTab
+                                removeBranding={removeBranding}
+                                avatar={avatar}
+                                onBrandingChange={setRemoveBranding}
+                                onAvatarChange={setAvatar}
+                            />
+                        )}
                         {activeTab === "share" && (
                             <ShareTab
                                 chatLink={chatLink}
@@ -184,6 +195,7 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
                         welcomeMessage={welcomeMessage}
                         tone={tone}
                         fields={form.fields ?? []}
+                        removeBranding={removeBranding}
                     />
                 </div>
             </div>

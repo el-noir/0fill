@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Send, CheckCircle2, Loader2, AlertCircle, RotateCcw } from 'lucide-react';
 
 interface ChatInputProps {
@@ -9,9 +9,10 @@ interface ChatInputProps {
     isTyping: boolean;
     chatState: string;
     isEmbed?: boolean;
+    removeBranding?: boolean;
 }
 
-export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping, chatState, isEmbed = false }: ChatInputProps) {
+export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping, chatState, isEmbed = false, removeBranding }: ChatInputProps) {
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
     const onSend = (e?: React.FormEvent) => {
@@ -95,9 +96,11 @@ export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping,
                         </button>
                     </form>
                 )}
-                <p className="text-center text-[10px] text-gray-700 mt-2">
-                    Powered by <span className="text-gray-600">0Fill</span>
-                </p>
+                {!removeBranding && (
+                    <p className="text-center text-[10px] text-gray-700 mt-2">
+                        Powered by <span className="text-gray-600">0Fill</span>
+                    </p>
+                )}
             </div>
         </footer>
     );
