@@ -10,9 +10,22 @@ interface ChatInputProps {
     chatState: string;
     isEmbed?: boolean;
     removeBranding?: boolean;
+    themeColor?: string;
+    buttonStyle?: 'rounded' | 'square';
 }
 
-export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping, chatState, isEmbed = false, removeBranding }: ChatInputProps) {
+export function ChatInput({ 
+    input, 
+    setInput, 
+    handleSend, 
+    isSubmitting, 
+    isTyping, 
+    chatState, 
+    isEmbed = false, 
+    removeBranding,
+    themeColor = "#10b981",
+    buttonStyle = "rounded"
+}: ChatInputProps) {
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
     const onSend = (e?: React.FormEvent) => {
@@ -25,7 +38,7 @@ export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping,
             <div className="max-w-2xl mx-auto px-4 py-3">
                 {chatState === 'COMPLETED' ? (
                     <div className="flex items-center gap-3 bg-[#111116] border border-gray-800 rounded-xl px-4 py-3.5">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: themeColor }} />
                         <div>
                             <p className="text-sm font-medium text-white">{isEmbed ? "Got it, thanks!" : "All responses submitted"}</p>
                             <p className="text-xs text-gray-500 mt-0.5">{isEmbed ? "We'll be in touch soon." : "You can close this tab."}</p>
@@ -40,7 +53,8 @@ export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping,
                         <button
                             onClick={() => handleSend(undefined, 'retry')}
                             disabled={isSubmitting || isTyping}
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
+                            className={`w-full hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 px-6 transition-all flex items-center justify-center gap-2 text-sm ${buttonStyle === 'rounded' ? 'rounded-xl' : 'rounded'}`}
+                            style={{ backgroundColor: themeColor }}
                         >
                             {isSubmitting
                                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Retrying...</>
@@ -53,7 +67,8 @@ export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping,
                         <button
                             onClick={() => handleSend(undefined, 'submit')}
                             disabled={isSubmitting || isTyping}
-                            className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
+                            className={`w-full hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 px-6 transition-all flex items-center justify-center gap-2 text-sm ${buttonStyle === 'rounded' ? 'rounded-xl' : 'rounded'}`}
+                            style={{ backgroundColor: themeColor }}
                         >
                             {isSubmitting
                                 ? <><Loader2 className="w-4 h-4 animate-spin" /> {isEmbed ? 'Sending...' : 'Submitting...'}</>
@@ -90,7 +105,8 @@ export function ChatInput({ input, setInput, handleSend, isSubmitting, isTyping,
                         <button
                             type="submit"
                             disabled={!input.trim() || isSubmitting || isTyping}
-                            className="shrink-0 w-8 h-8 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 disabled:hover:bg-emerald-600 text-white rounded-lg flex items-center justify-center transition-colors mb-0.5"
+                            className={`shrink-0 w-8 h-8 hover:opacity-90 disabled:opacity-30 text-white flex items-center justify-center transition-all mb-0.5 ${buttonStyle === 'rounded' ? 'rounded-lg' : 'rounded'}`}
+                            style={{ backgroundColor: themeColor }}
                         >
                             <Send className="w-3.5 h-3.5" />
                         </button>

@@ -10,6 +10,8 @@ interface FormInfo {
     aiName?: string;
     aiAvatar?: string;
     removeBranding?: boolean;
+    themeColor?: string;
+    buttonStyle?: 'rounded' | 'square';
 }
 
 import { toast } from 'sonner';

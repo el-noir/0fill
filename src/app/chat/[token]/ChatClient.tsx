@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Background } from '@/components/Background';
 import { Loader2, Sparkles } from 'lucide-react';
 import { ChatHeader } from '@/components/chat/ChatHeader';
@@ -33,12 +33,11 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
     } = useChatSession(token, isEmbed);
 
     // In embed mode: auto-start the conversation as soon as form info is loaded.
-    // No welcome screen, no "Start Conversation" button — just jump straight to the AI.
     useEffect(() => {
         if (isEmbed && !loadingInfo && formInfo && chatState === 'IDLE') {
             handleStart();
         }
-    }, [isEmbed, loadingInfo, formInfo, chatState]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [isEmbed, loadingInfo, formInfo, chatState, handleStart]);
 
     const aiName: string = formInfo?.aiName || 'Assistant';
     const aiAvatar: string | undefined = formInfo?.aiAvatar as string | undefined;
@@ -50,10 +49,13 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                 {/* Slim AI header for embed */}
                 {isEmbed && formInfo && (
                     <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-base shrink-0 overflow-hidden">
+                        <div 
+                            className="w-8 h-8 rounded-full border flex items-center justify-center text-base shrink-0 overflow-hidden"
+                            style={{ backgroundColor: `${formInfo.themeColor || '#10b981'}20`, borderColor: `${formInfo.themeColor || '#10b981'}30` }}
+                        >
                             {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
                                 ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
-                                : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-4 h-4 text-emerald-500/80" />)
+                                : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-4 h-4" style={{ color: formInfo.themeColor || '#10b981' }} />)
                             }
                         </div>
                         <div>
@@ -64,7 +66,7 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                 )}
                 <div className="flex-1 flex items-center justify-center">
                     <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                        <Loader2 className="w-5 h-5 animate-spin" style={{ color: formInfo?.themeColor || '#10b981' }} />
                         {isEmbed && <p className="text-xs text-gray-600">Connecting...</p>}
                         {!isEmbed && <p className="text-sm text-gray-500">Loading...</p>}
                     </div>
@@ -97,10 +99,13 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                     </div>
                     <div>
                         <div className="mb-5 flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-lg shrink-0 overflow-hidden">
+                            <div 
+                                className="w-10 h-10 rounded-full border flex items-center justify-center text-lg shrink-0 overflow-hidden"
+                                style={{ backgroundColor: `${formInfo.themeColor || '#10b981'}20`, borderColor: `${formInfo.themeColor || '#10b981'}30` }}
+                            >
                                 {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
                                     ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
-                                    : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-5 h-5 text-emerald-500/80" />)
+                                    : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-5 h-5" style={{ color: formInfo.themeColor || '#10b981' }} />)
                                 }
                             </div>
                             <div>
@@ -121,7 +126,8 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                     <button
                         onClick={handleStart}
                         disabled={chatState === 'STARTING'}
-                        className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors text-sm flex items-center justify-center gap-2"
+                        className={`w-full hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 transition-all text-sm flex items-center justify-center gap-2 ${formInfo.buttonStyle === 'rounded' ? 'rounded-xl' : 'rounded'}`}
+                        style={{ backgroundColor: formInfo.themeColor || '#10b981' }}
                     >
                         {chatState === 'STARTING'
                             ? <><Loader2 className="w-4 h-4 animate-spin" /> Starting...</>
@@ -141,10 +147,13 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
             {/* Embed: slim top bar instead of full ChatHeader */}
             {isEmbed ? (
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-base shrink-0 overflow-hidden">
+                    <div 
+                        className="w-8 h-8 rounded-full border flex items-center justify-center text-base shrink-0 overflow-hidden"
+                        style={{ backgroundColor: `${formInfo.themeColor || '#10b981'}20`, borderColor: `${formInfo.themeColor || '#10b981'}30` }}
+                    >
                         {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
                             ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
-                            : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-4 h-4 text-emerald-500/80" />)
+                            : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-4 h-4" style={{ color: formInfo.themeColor || '#10b981' }} />)
                         }
                     </div>
                     <div className="flex-1 min-w-0">
@@ -165,6 +174,7 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                     progress={progress}
                     progressDetail={progressDetail}
                     removeBranding={formInfo.removeBranding}
+                    themeColor={formInfo.themeColor}
                 />
             )}
 
@@ -175,6 +185,7 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                 aiName={aiName}
                 aiAvatar={aiAvatar}
                 isEmbed={isEmbed}
+                themeColor={formInfo.themeColor}
             />
 
             <ChatInput
@@ -186,6 +197,8 @@ export function ChatClient({ token, isEmbed = false }: ChatClientProps) {
                 chatState={chatState}
                 isEmbed={isEmbed}
                 removeBranding={formInfo.removeBranding}
+                themeColor={formInfo.themeColor}
+                buttonStyle={formInfo.buttonStyle}
             />
         </div>
     );

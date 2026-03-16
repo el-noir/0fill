@@ -21,6 +21,8 @@ interface ChatPreviewProps {
     tone: Tone;
     fields: Field[];
     removeBranding?: boolean;
+    themeColor?: string;
+    buttonStyle?: 'rounded' | 'square';
 }
 
 // Turn a field into the AI's question for it
@@ -83,7 +85,26 @@ function buildMessages(formTitle: string, aiName: string, tone: Tone, welcomeMes
     return messages;
 }
 
-export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone, fields, removeBranding }: ChatPreviewProps) {
+export function ChatPreview({ 
+    formTitle, 
+    aiName, 
+    aiAvatar, 
+    welcomeMessage, 
+    tone, 
+    fields, 
+    removeBranding,
+    themeColor = "#10b981",
+    buttonStyle = "rounded"
+}: ChatPreviewProps) {
+    // Utility to add alpha to hex colors for subtle borders
+    const themeWithAlpha = (alpha: number) => {
+        if (!themeColor.startsWith('#')) return themeColor;
+        const r = parseInt(themeColor.slice(1, 3), 16);
+        const g = parseInt(themeColor.slice(3, 5), 16);
+        const b = parseInt(themeColor.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
     const isUrl = aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/');
     const messages = useMemo(
         () => buildMessages(formTitle, aiName, tone, welcomeMessage, fields),
@@ -112,7 +133,10 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
                 >
                     {/* Chat topbar */}
                     <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800/80 bg-[#0B0B0F] shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-base overflow-hidden">
+                        <div 
+                            className="w-8 h-8 rounded-full border flex items-center justify-center text-base overflow-hidden"
+                            style={{ backgroundColor: themeWithAlpha(0.1), borderColor: themeWithAlpha(0.2) }}
+                        >
                             {isUrl ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" /> : aiAvatar}
                         </div>
                         <div>
@@ -142,15 +166,19 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
                                 }}
                             >
                                 {msg.role === "ai" && (
-                                    <div className="w-6 h-6 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-xs shrink-0 mt-0.5 overflow-hidden">
+                                    <div 
+                                        className="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] shrink-0 mt-0.5 overflow-hidden"
+                                        style={{ backgroundColor: themeWithAlpha(0.1), borderColor: themeWithAlpha(0.2) }}
+                                    >
                                         {isUrl ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" /> : aiAvatar}
                                     </div>
                                 )}
                                 <div
                                     className={`px-3 py-2 rounded-2xl text-xs leading-relaxed max-w-[75%] ${msg.role === "ai"
                                         ? "bg-[#1C1C22] border border-gray-800 text-gray-200 rounded-tl-sm"
-                                        : "bg-brand-purple text-white rounded-tr-sm"
+                                        : "text-white rounded-tr-sm"
                                         }`}
+                                    style={msg.role === "user" ? { backgroundColor: themeColor } : {}}
                                 >
                                     {msg.text}
                                 </div>
@@ -166,7 +194,10 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
                                 opacity: 0,
                             }}
                         >
-                            <div className="w-6 h-6 rounded-full bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-xs shrink-0 mt-0.5 overflow-hidden">
+                            <div 
+                                className="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] shrink-0 mt-0.5 overflow-hidden"
+                                style={{ backgroundColor: themeWithAlpha(0.1), borderColor: themeWithAlpha(0.2) }}
+                            >
                                 {isUrl ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" /> : aiAvatar}
                             </div>
                             <div className="px-3 py-2.5 rounded-2xl rounded-tl-sm bg-[#1C1C22] border border-gray-800 flex gap-1 items-center">
@@ -183,7 +214,10 @@ export function ChatPreview({ formTitle, aiName, aiAvatar, welcomeMessage, tone,
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2 bg-[#111116] border border-gray-800 rounded-xl px-3 py-2">
                                 <span className="text-xs text-gray-600 flex-1">Type a message...</span>
-                                <div className="w-6 h-6 rounded-full bg-brand-purple flex items-center justify-center opacity-40">
+                                <div 
+                                    className={`w-6 h-6 flex items-center justify-center opacity-80 ${buttonStyle === 'rounded' ? 'rounded-full' : 'rounded'}`}
+                                    style={{ backgroundColor: themeColor }}
+                                >
                                     <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3">
                                         <path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>

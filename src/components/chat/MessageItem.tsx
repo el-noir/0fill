@@ -9,9 +9,10 @@ interface MessageItemProps {
     aiName?: string;
     aiAvatar?: string;
     isEmbed?: boolean;
+    themeColor?: string;
 }
 
-export function MessageItem({ message, aiName, aiAvatar, isEmbed = false }: MessageItemProps) {
+export function MessageItem({ message, aiName, aiAvatar, isEmbed = false, themeColor = "#10b981" }: MessageItemProps) {
     const isUser = message.role === 'user';
 
     return (
@@ -19,14 +20,17 @@ export function MessageItem({ message, aiName, aiAvatar, isEmbed = false }: Mess
             {/* Avatar */}
             <div className="shrink-0 pt-0.5">
                 {isUser ? (
-                    <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-gray-700/50 border border-white/5 flex items-center justify-center">
                         <span className="text-[10px] font-semibold text-gray-300">You</span>
                     </div>
                 ) : (
-                    <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-sm leading-none overflow-hidden shrink-0">
+                    <div 
+                        className="w-7 h-7 rounded-full border flex items-center justify-center text-sm leading-none overflow-hidden shrink-0"
+                        style={{ backgroundColor: `${themeColor}20`, borderColor: `${themeColor}30` }}
+                    >
                         {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
                             ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
-                            : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-3.5 h-3.5 text-emerald-500" />)
+                            : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-3.5 h-3.5" style={{ color: themeColor }} />)
                         }
                     </div>
                 )}
@@ -42,9 +46,11 @@ export function MessageItem({ message, aiName, aiAvatar, isEmbed = false }: Mess
                 <div className={cn(
                     'rounded-2xl px-4 py-3 text-sm leading-relaxed',
                     isUser
-                        ? 'bg-emerald-600 text-white rounded-tr-none'
+                        ? 'text-white rounded-tr-none shadow-lg'
                         : 'bg-[#111116] border border-gray-800 text-gray-200 rounded-tl-none'
-                )}>
+                )}
+                style={isUser ? { backgroundColor: themeColor } : {}}
+                >
                     {isUser ? (
                         <p className="whitespace-pre-wrap">{message.content}</p>
                     ) : (

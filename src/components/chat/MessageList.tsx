@@ -10,9 +10,10 @@ interface MessageListProps {
     aiName?: string;
     aiAvatar?: string;
     isEmbed?: boolean;
+    themeColor?: string;
 }
 
-export function MessageList({ messages, isTyping, messagesEndRef, aiName, aiAvatar, isEmbed = false }: MessageListProps) {
+export function MessageList({ messages, isTyping, messagesEndRef, aiName, aiAvatar, isEmbed = false, themeColor = "#10b981" }: MessageListProps) {
     return (
         <main
             className="flex-1 overflow-y-auto relative z-10"
@@ -27,16 +28,20 @@ export function MessageList({ messages, isTyping, messagesEndRef, aiName, aiAvat
                         aiName={aiName}
                         aiAvatar={aiAvatar}
                         isEmbed={isEmbed}
+                        themeColor={themeColor}
                     />
                 ))}
 
                 {/* Typing indicator */}
                 {isTyping && (
                     <div className="flex gap-3 items-start">
-                        <div className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center text-sm shrink-0 pt-0.5 overflow-hidden">
+                        <div 
+                            className="w-7 h-7 rounded-full border flex items-center justify-center text-sm shrink-0 pt-0.5 overflow-hidden"
+                            style={{ backgroundColor: `${themeColor}20`, borderColor: `${themeColor}30` }}
+                        >
                             {aiAvatar?.startsWith('http') || aiAvatar?.startsWith('/')
                                 ? <img src={aiAvatar} alt="" className="w-full h-full object-cover" />
-                                : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-3.5 h-3.5 text-emerald-500" />)
+                                : (aiAvatar ? <span className="text-base">{aiAvatar}</span> : <Sparkles className="w-3.5 h-3.5" style={{ color: themeColor }} />)
                             }
                         </div>
                         <div className="bg-[#111116] border border-gray-800 rounded-2xl rounded-tl-none px-4 py-3">

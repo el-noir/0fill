@@ -42,6 +42,8 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
     const [avatar, setAvatar] = useState<string>(saved.avatar ?? "✨");
     const [welcomeMessage, setWelcomeMessage] = useState<string>(saved.welcomeMessage ?? "");
     const [removeBranding, setRemoveBranding] = useState<boolean>(saved.removeBranding ?? false);
+    const [themeColor, setThemeColor] = useState<string>(saved.themeColor ?? "#10b981");
+    const [buttonStyle, setButtonStyle] = useState<'rounded' | 'square'>(saved.buttonStyle ?? "rounded");
 
     // Persist state
     const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -65,7 +67,15 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
     }, []);
 
     // Debounced auto-save whenever config changes
-    const doSave = useCallback(async (config: { aiName: string; tone: Tone; avatar: string; welcomeMessage: string; removeBranding: boolean }) => {
+    const doSave = useCallback(async (config: { 
+        aiName: string; 
+        tone: Tone; 
+        avatar: string; 
+        welcomeMessage: string; 
+        removeBranding: boolean;
+        themeColor: string;
+        buttonStyle: 'rounded' | 'square';
+    }) => {
         setSaveStatus("saving");
         try {
             await saveChatConfig(orgId, formId, config);
@@ -81,9 +91,11 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
         // Skip save on very first render (the initial seed from chatConfig)
         if (isFirstRender.current) { isFirstRender.current = false; return; }
         if (saveTimer.current) clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(() => doSave({ aiName, tone, avatar, welcomeMessage, removeBranding }), AUTOSAVE_DEBOUNCE_MS);
+        saveTimer.current = setTimeout(() => doSave({ 
+            aiName, tone, avatar, welcomeMessage, removeBranding, themeColor, buttonStyle 
+        }), AUTOSAVE_DEBOUNCE_MS);
         return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-    }, [aiName, tone, avatar, welcomeMessage, removeBranding, doSave]);
+    }, [aiName, tone, avatar, welcomeMessage, removeBranding, themeColor, buttonStyle, doSave]);
 
     const handlePublish = async () => {
         setIsPublishing(true);
@@ -168,8 +180,12 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
                             <DesignTab
                                 removeBranding={removeBranding}
                                 avatar={avatar}
+                                themeColor={themeColor}
+                                buttonStyle={buttonStyle}
                                 onBrandingChange={setRemoveBranding}
                                 onAvatarChange={setAvatar}
+                                onThemeColorChange={setThemeColor}
+                                onButtonStyleChange={setButtonStyle}
                             />
                         )}
                         {activeTab === "share" && (
@@ -196,6 +212,8 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
                         tone={tone}
                         fields={form.fields ?? []}
                         removeBranding={removeBranding}
+                        themeColor={themeColor}
+                        buttonStyle={buttonStyle}
                     />
                 </div>
             </div>

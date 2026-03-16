@@ -15,10 +15,10 @@ function buildLogLines(form: any): { text: string; delay: number }[] {
     const name = form.title ?? "Form";
 
     const base = [
-        { text: `> Initializing AI Chat Builder...`, delay: 0 },
-        { text: `> Connecting to form registry`, delay: 60 },
-        { text: `> Fetching "${name}"`, delay: 100 },
-        { text: `> Parsing ${fields.length || 0} field${fields.length !== 1 ? "s" : ""}...`, delay: 80 },
+        { text: `> Initializing Generative Form Engine...`, delay: 0 },
+        { text: `> Handshaking with Google Forms API`, delay: 60 },
+        { text: `> Analyzing schema for "${name}"`, delay: 100 },
+        { text: `> Extracting ${fields.length || 0} fields and validation rules...`, delay: 80 },
     ];
 
     // Show up to 5 real field names
@@ -35,10 +35,12 @@ function buildLogLines(form: any): { text: string; delay: number }[] {
     }
 
     const tail = [
-        { text: `> Setting up AI conversation layer...`, delay: 90 },
-        { text: `> Configuring language model context...`, delay: 80 },
-        { text: `> Building live preview...`, delay: 90 },
-        { text: `> Ready. Opening builder ✓`, delay: 60 },
+        { text: `> Neutralizing boring fields...`, delay: 90 },
+        { text: `> Mapping conversational flow logic...`, delay: 80 },
+        { text: `> Generating personality (tone: Friendly)`, delay: 70 },
+        { text: `> Injecting brand identity...`, delay: 90 },
+        { text: `> Optimizing for human interaction...`, delay: 110 },
+        { text: `> Build complete. Formless AI is ready.`, delay: 60 },
     ];
 
     return [...base, ...fieldLines, ...tail];

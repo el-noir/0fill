@@ -10,9 +10,10 @@ interface ChatHeaderProps {
     progress: number;
     progressDetail?: ProgressDetail | null;
     removeBranding?: boolean;
+    themeColor?: string;
 }
 
-export function ChatHeader({ title, aiName, chatState, progress, progressDetail, removeBranding }: ChatHeaderProps) {
+export function ChatHeader({ title, aiName, chatState, progress, progressDetail, removeBranding, themeColor = "#10b981" }: ChatHeaderProps) {
     const isCompleted = chatState === 'COMPLETED';
     const isError = chatState === 'ERROR';
 
@@ -35,7 +36,7 @@ export function ChatHeader({ title, aiName, chatState, progress, progressDetail,
                 {/* Right: progress or done state */}
                 <div className="shrink-0 text-xs text-gray-500 font-medium">
                     {isCompleted ? (
-                        <span className="text-emerald-400 font-bold uppercase tracking-widest text-[10px]">Completed</span>
+                        <span className="font-bold uppercase tracking-widest text-[10px]" style={{ color: themeColor }}>Completed</span>
                     ) : isError ? (
                         <span className="text-red-400">Submission failed</span>
                     ) : (
@@ -45,8 +46,8 @@ export function ChatHeader({ title, aiName, chatState, progress, progressDetail,
                             </p>
                             <div className="w-16 h-1 bg-gray-800/60 rounded-full overflow-hidden shrink-0 border border-white/5">
                                 <div
-                                    className="h-full bg-emerald-500 transition-all duration-500 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                                    style={{ width: `${progress}%` }}
+                                    className="h-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                                    style={{ width: `${progress}%`, backgroundColor: themeColor }}
                                 />
                             </div>
                         </div>
@@ -62,8 +63,8 @@ export function ChatHeader({ title, aiName, chatState, progress, progressDetail,
                 !isCompleted && (
                     <div className="h-[1px] bg-gray-900 w-full overflow-hidden">
                         <div
-                            className="h-full bg-emerald-500/30 transition-all duration-500 ease-out"
-                            style={{ width: `${progress}%` }}
+                            className="h-full transition-all duration-500 ease-out"
+                            style={{ width: `${progress}%`, backgroundColor: themeColor, opacity: 0.3 }}
                         />
                     </div>
                 )

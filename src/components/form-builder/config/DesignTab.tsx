@@ -1,18 +1,40 @@
 "use client";
 
 import React from "react";
-import { Shield, Trash2, Image as ImageIcon, Smile } from "lucide-react";
+import { Shield, Trash2, Image as ImageIcon, Palette, Square, Circle } from "lucide-react";
 
 interface DesignTabProps {
     removeBranding: boolean;
     avatar: string;
+    themeColor: string;
+    buttonStyle: 'rounded' | 'square';
     onBrandingChange: (enabled: boolean) => void;
     onAvatarChange: (avatar: string) => void;
+    onThemeColorChange: (color: string) => void;
+    onButtonStyleChange: (style: 'rounded' | 'square') => void;
 }
+
+const THEME_COLORS = [
+    "#10b981", // Emerald (Default)
+    "#8b5cf6", // Violet
+    "#3b82f6", // Blue
+    "#f59e0b", // Amber
+    "#ef4444", // Red
+    "#ec4899", // Pink
+];
 
 const EMOJI_AVATARS = ["✨", "🤖", "💬", "🎯", "🧠", "⚡", "🌟", "💡"];
 
-export function DesignTab({ removeBranding, avatar, onBrandingChange, onAvatarChange }: DesignTabProps) {
+export function DesignTab({ 
+    removeBranding, 
+    avatar, 
+    themeColor,
+    buttonStyle,
+    onBrandingChange, 
+    onAvatarChange,
+    onThemeColorChange,
+    onButtonStyleChange
+}: DesignTabProps) {
     const isUrl = avatar.startsWith('http') || avatar.startsWith('/');
 
     return (
@@ -102,6 +124,64 @@ export function DesignTab({ removeBranding, avatar, onBrandingChange, onAvatarCh
                             ))}
                         </div>
                     </div>
+                </div>
+            </div>
+            {/* Theme Color Section */}
+            <div>
+                <div className="flex items-center gap-2 mb-4">
+                    <Palette className="w-4 h-4 text-brand-purple" />
+                    <h3 className="text-sm font-semibold text-white">Theme Color</h3>
+                </div>
+
+                <div className="space-y-4">
+                    <div className="flex gap-2 flex-wrap">
+                        {THEME_COLORS.map((color) => (
+                            <button
+                                key={color}
+                                onClick={() => onThemeColorChange(color)}
+                                className={`w-8 h-8 rounded-full border-2 transition-all ${themeColor === color ? "border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]" : "border-transparent hover:scale-105"}`}
+                                style={{ backgroundColor: color }}
+                            />
+                        ))}
+                        <div className="flex items-center gap-2 ml-2">
+                             <input 
+                                type="text"
+                                value={themeColor}
+                                onChange={(e) => onThemeColorChange(e.target.value)}
+                                className="w-20 bg-[#111116] border border-gray-800 rounded text-[10px] text-white px-2 py-1.5 focus:outline-none focus:border-brand-purple"
+                                placeholder="#HEX"
+                             />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Button Style Section */}
+            <div>
+                <div className="flex items-center gap-2 mb-4">
+                    <Square className="w-4 h-4 text-brand-purple" />
+                    <h3 className="text-sm font-semibold text-white">Button Style</h3>
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => onButtonStyleChange('rounded')}
+                        className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${buttonStyle === 'rounded' ? "border-brand-purple bg-brand-purple/10" : "border-gray-800 bg-[#111116] hover:border-gray-700"}`}
+                    >
+                        <div className="w-12 h-6 rounded-full bg-gray-700 border border-gray-600 flex items-center px-1">
+                            <div className="w-3 h-3 bg-emerald-500 rounded-full" />
+                        </div>
+                        <span className="text-[10px] text-gray-400">Pill</span>
+                    </button>
+                    <button
+                        onClick={() => onButtonStyleChange('square')}
+                        className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${buttonStyle === 'square' ? "border-brand-purple bg-brand-purple/10" : "border-gray-800 bg-[#111116] hover:border-gray-700"}`}
+                    >
+                        <div className="w-12 h-6 rounded bg-gray-700 border border-gray-600 flex items-center px-1">
+                            <div className="w-3 h-3 bg-emerald-500 rounded-sm" />
+                        </div>
+                        <span className="text-[10px] text-gray-400">Modern</span>
+                    </button>
                 </div>
             </div>
         </div>

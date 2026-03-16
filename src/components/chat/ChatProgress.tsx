@@ -8,6 +8,7 @@ import { ProgressDetail, SectionProgress } from './types';
 interface ChatProgressProps {
     progressDetail: ProgressDetail;
     chatState: string;
+    themeColor?: string;
 }
 
 function getStateLabel(chatState: string, progressDetail: ProgressDetail): string {
@@ -28,7 +29,7 @@ function getStateLabel(chatState: string, progressDetail: ProgressDetail): strin
 }
 
 /** Dot-based step indicator — great for 6-15 questions */
-function DotIndicator({ progressDetail }: { progressDetail: ProgressDetail }) {
+function DotIndicator({ progressDetail, themeColor = "#10b981" }: { progressDetail: ProgressDetail, themeColor?: string }) {
     return (
         <div className="flex items-center gap-1">
             {progressDetail.fields.map((field) => (
@@ -37,11 +38,15 @@ function DotIndicator({ progressDetail }: { progressDetail: ProgressDetail }) {
                     title={field.label}
                     className={cn(
                         'rounded-full transition-all duration-300',
-                        field.status === 'completed' && 'w-2 h-2 bg-emerald-500',
-                        field.status === 'current' && 'w-2.5 h-2.5 bg-emerald-400 ring-2 ring-emerald-400/30 scale-110',
+                        field.status === 'completed' && 'w-2 h-2 opacity-80',
+                        field.status === 'current' && 'w-2.5 h-2.5 ring-2 scale-110',
                         field.status === 'upcoming' && 'w-2 h-2 bg-gray-700',
                         field.status === 'skipped' && 'w-2 h-2 bg-yellow-500/60',
                     )}
+                    style={{
+                        backgroundColor: field.status === 'completed' || field.status === 'current' ? themeColor : undefined,
+                        boxShadow: field.status === 'current' ? `0 0 0 2px ${themeColor}4d` : undefined
+                    }}
                 />
             ))}
         </div>
@@ -49,7 +54,7 @@ function DotIndicator({ progressDetail }: { progressDetail: ProgressDetail }) {
 }
 
 /** Collapsible step list with labels — great for ≤5 questions */
-function StepList({ progressDetail }: { progressDetail: ProgressDetail }) {
+function StepList({ progressDetail, themeColor = "#10b981" }: { progressDetail: ProgressDetail, themeColor?: string }) {
     const [expanded, setExpanded] = useState(false);
 
     // Show only the current + 1 next when collapsed
@@ -76,11 +81,16 @@ function StepList({ progressDetail }: { progressDetail: ProgressDetail }) {
                     <div
                         className={cn(
                             'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all duration-300',
-                            field.status === 'completed' && 'bg-emerald-500 text-white',
-                            field.status === 'current' && 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40',
+                            field.status === 'completed' && 'text-white',
+                            field.status === 'current' && 'ring-1',
                             field.status === 'upcoming' && 'bg-gray-800 text-gray-500',
                             field.status === 'skipped' && 'bg-yellow-500/20 text-yellow-400',
                         )}
+                        style={{
+                            backgroundColor: field.status === 'completed' ? themeColor : field.status === 'current' ? `${themeColor}33` : undefined,
+                            color: field.status === 'current' ? themeColor : undefined,
+                            borderColor: field.status === 'current' ? `${themeColor}66` : undefined
+                        }}
                     >
                         {field.status === 'completed' ? (
                             <Check className="w-3 h-3" />
@@ -122,19 +132,19 @@ function StepList({ progressDetail }: { progressDetail: ProgressDetail }) {
 }
 
 /** Thin animated progress bar */
-function ProgressBar({ percentage }: { percentage: number }) {
+function ProgressBar({ percentage, themeColor = "#10b981" }: { percentage: number, themeColor?: string }) {
     return (
         <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
             <div
-                className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${percentage}%` }}
+                className="h-full rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${percentage}%`, backgroundColor: themeColor }}
             />
         </div>
     );
 }
 
 /** Page stepper for multi-page/section forms */
-function PageStepper({ progressDetail }: { progressDetail: ProgressDetail }) {
+function PageStepper({ progressDetail, themeColor = "#10b981" }: { progressDetail: ProgressDetail, themeColor?: string }) {
     if (!progressDetail.sections || progressDetail.sections.length <= 1) return null;
 
     const currentSection = progressDetail.sections[progressDetail.currentPage - 1];
@@ -149,10 +159,15 @@ function PageStepper({ progressDetail }: { progressDetail: ProgressDetail }) {
                             title={section.title}
                             className={cn(
                                 'w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300',
-                                section.status === 'completed' && 'bg-emerald-500 text-white',
-                                section.status === 'current' && 'bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500/30',
+                                section.status === 'completed' && 'text-white',
+                                section.status === 'current' && 'ring-2',
                                 section.status === 'upcoming' && 'bg-gray-800 text-gray-500',
                             )}
+                            style={{
+                                backgroundColor: section.status === 'completed' ? themeColor : section.status === 'current' ? `${themeColor}33` : undefined,
+                                color: section.status === 'current' ? themeColor : undefined,
+                                boxShadow: section.status === 'current' ? `0 0 0 2px ${themeColor}4d` : undefined
+                            }}
                         >
                             {section.status === 'completed' ? (
                                 <Check className="w-3.5 h-3.5" />
@@ -164,8 +179,8 @@ function PageStepper({ progressDetail }: { progressDetail: ProgressDetail }) {
                             <div
                                 className={cn(
                                     'h-0.5 w-5 rounded-full transition-all duration-500',
-                                    section.status === 'completed' ? 'bg-emerald-500' : 'bg-gray-800',
                                 )}
+                                style={{ backgroundColor: section.status === 'completed' ? themeColor : '#1f2937' }}
                             />
                         )}
                     </div>
@@ -174,9 +189,9 @@ function PageStepper({ progressDetail }: { progressDetail: ProgressDetail }) {
 
             {/* Current section label */}
             {currentSection && (
-                <p className="text-center text-[11px] text-emerald-400/80 font-medium">
+                <p className="text-center text-[11px] font-medium" style={{ color: themeColor }}>
                     Page {progressDetail.currentPage}: {currentSection.title}
-                    <span className="text-gray-600 ml-1.5">
+                    <span className="text-gray-600 ml-1.5 opacity-80">
                         ({currentSection.answeredCount}/{currentSection.totalFields})
                     </span>
                 </p>
@@ -192,7 +207,7 @@ function PageStepper({ progressDetail }: { progressDetail: ProgressDetail }) {
  * - 6-15 fields → dot indicator + progress bar
  * - 15+ fields  → progress bar + text counter
  */
-export function ChatProgress({ progressDetail, chatState }: ChatProgressProps) {
+export function ChatProgress({ progressDetail, chatState, themeColor = "#10b981" }: ChatProgressProps) {
     const label = getStateLabel(chatState, progressDetail);
     const totalFields = progressDetail.totalFields;
     const isDone = chatState === 'COMPLETED' || chatState === 'CONFIRMING' || chatState === 'READY_TO_SUBMIT';
@@ -202,15 +217,15 @@ export function ChatProgress({ progressDetail, chatState }: ChatProgressProps) {
         <div className="px-4 py-3 space-y-2.5 border-b border-gray-800/60 bg-[#0B0B0F]/80 backdrop-blur-sm">
             {/* Page stepper — only for multi-page forms */}
             {hasMultiplePages && !isDone && (
-                <PageStepper progressDetail={progressDetail} />
+                <PageStepper progressDetail={progressDetail} themeColor={themeColor} />
             )}
 
             {/* Top row: label + percentage */}
             <div className="flex items-center justify-between">
                 <span className={cn(
                     'text-xs font-medium',
-                    isDone ? 'text-emerald-400' : 'text-gray-400',
-                )}>
+                    isDone ? 'opacity-100' : 'text-gray-400',
+                )} style={isDone ? { color: themeColor } : {}}>
                     {label}
                 </span>
                 <span className="text-[10px] text-gray-600 tabular-nums">
@@ -219,15 +234,15 @@ export function ChatProgress({ progressDetail, chatState }: ChatProgressProps) {
             </div>
 
             {/* Progress bar — always shown */}
-            <ProgressBar percentage={progressDetail.percentage} />
+            <ProgressBar percentage={progressDetail.percentage} themeColor={themeColor} />
 
             {/* Adaptive detail view */}
             {!isDone && (
                 <div className="pt-0.5">
                     {totalFields <= 5 ? (
-                        <StepList progressDetail={progressDetail} />
+                        <StepList progressDetail={progressDetail} themeColor={themeColor} />
                     ) : totalFields <= 15 ? (
-                        <DotIndicator progressDetail={progressDetail} />
+                        <DotIndicator progressDetail={progressDetail} themeColor={themeColor} />
                     ) : null /* 15+ just shows bar + counter above */}
                 </div>
             )}
@@ -236,7 +251,7 @@ export function ChatProgress({ progressDetail, chatState }: ChatProgressProps) {
 }
 
 /** Compact inline progress for embed mode headers */
-export function ChatProgressCompact({ progressDetail, chatState }: ChatProgressProps) {
+export function ChatProgressCompact({ progressDetail, chatState, themeColor = "#10b981" }: ChatProgressProps) {
     const isDone = chatState === 'COMPLETED';
     const isError = chatState === 'ERROR';
 
@@ -249,11 +264,14 @@ export function ChatProgressCompact({ progressDetail, chatState }: ChatProgressP
                         key={field.fieldId}
                         className={cn(
                             'w-1.5 h-1.5 rounded-full transition-all duration-300',
-                            field.status === 'completed' && 'bg-emerald-500',
-                            field.status === 'current' && 'bg-emerald-400 scale-125',
+                            field.status === 'completed' && 'opacity-80',
+                            field.status === 'current' && 'scale-125',
                             field.status === 'upcoming' && 'bg-gray-700',
                             field.status === 'skipped' && 'bg-yellow-500/60',
                         )}
+                        style={{
+                            backgroundColor: field.status === 'completed' || field.status === 'current' ? themeColor : undefined
+                        }}
                     />
                 ))}
                 {progressDetail.totalFields > 10 && (
@@ -262,8 +280,8 @@ export function ChatProgressCompact({ progressDetail, chatState }: ChatProgressP
             </div>
             <span className={cn(
                 'text-[10px] tabular-nums',
-                isDone ? 'text-emerald-400' : isError ? 'text-red-400' : 'text-gray-500',
-            )}>
+                isDone || isError ? 'opacity-100' : 'text-gray-500',
+            )} style={isDone ? { color: themeColor } : isError ? { color: '#f87171' } : {}}>
                 {isDone ? 'Done' : isError ? 'Failed' : `${progressDetail.percentage}%`}
             </span>
         </div>
