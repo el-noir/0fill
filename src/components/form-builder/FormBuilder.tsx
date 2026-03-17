@@ -109,7 +109,7 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
             // Ensure the form is marked as ACTIVE in the database
             await publishForm(orgId, formId);
             const data = await generateChatLink(orgId, formId);
-            const fullUrl = `${window.location.origin}/chat/${data.data}`;
+            const fullUrl = `${window.location.origin}/chat/${data.data.token}`;
             setChatLink(fullUrl);
             setActiveTab("share");
         } catch (e: any) {
