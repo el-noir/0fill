@@ -96,7 +96,7 @@ const DEFAULT_CHAT_CONFIG: ChatConfig = {
 
 const DEFAULT_SETTINGS: FormSettings = {
     showProgressBar: true,
-    isPublished: false,
+    isPublished: true,
 };
 
 const DEFAULT_BRANDING: FormBranding = {

@@ -158,9 +158,9 @@ export default function OrgFormViewerPage() {
                             <Wand2 className="w-3.5 h-3.5" />
                             Configure AI Chat
                         </Link>
-                        {form.publicUrl && (
+                        {(form.publicUrl || form.chatLinkToken) && (
                             <a
-                                href={form.publicUrl}
+                                href={form.publicUrl || `/chat/${form.chatLinkToken}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="flex items-center gap-2 bg-[#111116] hover:bg-[#1C1C22] border border-gray-800 text-gray-300 hover:text-white text-xs font-medium px-4 py-2 rounded-md transition-colors"

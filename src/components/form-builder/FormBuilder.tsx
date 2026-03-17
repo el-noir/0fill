@@ -8,7 +8,7 @@ import { DesignTab } from "./config/DesignTab";
 import { ShareTab } from "./config/ShareTab";
 import { ChatPreview } from "./preview/ChatPreview";
 import { GeneratingOverlay } from "./GeneratingOverlay";
-import { generateChatLink, saveChatConfig } from "@/lib/api/organizations";
+import { generateChatLink, saveChatConfig, publishForm } from "@/lib/api/organizations";
 import { User, MessageCircle, Share2, Save, Palette } from "lucide-react";
 
 interface FormBuilderProps {
@@ -101,8 +101,10 @@ export function FormBuilder({ form, orgId, formId }: FormBuilderProps) {
         setIsPublishing(true);
         setPublishError(null);
         try {
+            // Ensure the form is marked as ACTIVE in the database
+            await publishForm(orgId, formId);
             const data = await generateChatLink(orgId, formId);
-            const fullUrl = `${window.location.origin}${data.data.url}`;
+            const fullUrl = `${window.location.origin}/chat/${data.data}`;
             setChatLink(fullUrl);
             setActiveTab("share");
         } catch (e: any) {
