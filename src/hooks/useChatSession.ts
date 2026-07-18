@@ -60,10 +60,12 @@ export function useChatSession(token: string, isEmbed: boolean = false) {
         try {
             // Read page context injected by widget.js via URL search params
             const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-            const pageContext = (params?.get('pageTitle') || params?.get('pageUrl') || isEmbed) ? {
+            const resumeToken = params?.get('resume') ?? undefined;
+            const pageContext = (params?.get('pageTitle') || params?.get('pageUrl') || isEmbed || resumeToken) ? {
                 pageTitle: params?.get('pageTitle') ?? undefined,
                 pageUrl: params?.get('pageUrl') ?? undefined,
                 isEmbed,
+                resumeToken,
             } : undefined;
 
             const data = await startPublicChat(token, pageContext);

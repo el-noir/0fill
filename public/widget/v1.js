@@ -10,17 +10,26 @@
     const requestedThemeInherit = script ? script.getAttribute('data-theme-inherit') === 'true' : false;
     const hostDomain = window.location.hostname || 'unknown';
 
-    const baseUrl = (window.location.origin.includes('localhost') || window.location.protocol === 'file:')
+    function normalizeUrl(value) {
+        return String(value || '').replace(/\/$/, '');
+    }
+
+    const defaultAppUrl = (window.location.origin.includes('localhost') || window.location.protocol === 'file:')
         ? 'http://localhost:3000'
         : 'https://0fill.vercel.app';
+    const defaultApiUrl = (window.location.origin.includes('localhost') || window.location.protocol === 'file:')
+        ? 'http://localhost:4000/api'
+        : `${defaultAppUrl}/api`;
+    const appUrl = normalizeUrl(script?.getAttribute('data-app-url') || defaultAppUrl);
+    const apiUrl = normalizeUrl(script?.getAttribute('data-api-url') || defaultApiUrl);
 
     if (!token || token === 'undefined') {
         console.error('ZeroFill Widget: Missing or invalid data-zerofill-token attribute.');
         return;
     }
 
-    const handshakeUrl = `${baseUrl}/api/public/chat/${encodeURIComponent(token)}/widget-config`;
-    const widgetEventUrl = `${baseUrl}/api/public/chat/${encodeURIComponent(token)}/widget-events`;
+    const handshakeUrl = `${apiUrl}/public/chat/${encodeURIComponent(token)}/widget-config`;
+    const widgetEventUrl = `${apiUrl}/public/chat/${encodeURIComponent(token)}/widget-events`;
 
     function delay(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -225,7 +234,7 @@
         if (mode === 'inline') {
             const iframeInline = document.createElement('iframe');
             iframeInline.id = 'zerofill-inline-iframe';
-            iframeInline.src = `${baseUrl}/chat/${token}/embed?pageTitle=${pageTitle}&pageUrl=${pageUrl}&widgetMode=${modeQuery}&scriptVersion=${versionQuery}`;
+            iframeInline.src = `${appUrl}/chat/${token}/embed?pageTitle=${pageTitle}&pageUrl=${pageUrl}&widgetMode=${modeQuery}&scriptVersion=${versionQuery}`;
             iframeInline.style.cssText = [
                 'width:100%',
                 'height:700px',
@@ -267,7 +276,7 @@
                     mode,
                 });
                 window.open(
-                    `${baseUrl}/chat/${token}/embed?pageTitle=${pageTitle}&pageUrl=${pageUrl}&widgetMode=${modeQuery}&scriptVersion=${versionQuery}`,
+                    `${appUrl}/chat/${token}/embed?pageTitle=${pageTitle}&pageUrl=${pageUrl}&widgetMode=${modeQuery}&scriptVersion=${versionQuery}`,
                     '_blank',
                     'noopener,noreferrer,width=420,height=700'
                 );
@@ -306,7 +315,7 @@
         container.appendChild(button);
         document.body.appendChild(container);
 
-        const iframeSrc = `${baseUrl}/chat/${token}/embed?pageTitle=${pageTitle}&pageUrl=${pageUrl}&widgetMode=${modeQuery}&scriptVersion=${versionQuery}`;
+        const iframeSrc = `${appUrl}/chat/${token}/embed?pageTitle=${pageTitle}&pageUrl=${pageUrl}&widgetMode=${modeQuery}&scriptVersion=${versionQuery}`;
 
         let isOpen = false;
         let iframeLoaded = false;

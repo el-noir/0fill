@@ -1,4 +1,5 @@
 import { apiFetch } from './apiFetch';
+import { API_BASE_URL } from './config';
 
 const BASE = `/public/chat`;
 
@@ -11,7 +12,7 @@ export const getPublicFormInfo = async (token: string) => {
 
 export const startPublicChat = async (
     token: string,
-    pageContext?: { pageTitle?: string; pageUrl?: string; isEmbed?: boolean }
+    pageContext?: { pageTitle?: string; pageUrl?: string; isEmbed?: boolean; resumeToken?: string }
 ) => {
     const res = await apiFetch(`${BASE}/${token}/start`, {
         method: 'POST',
@@ -62,8 +63,7 @@ export const sendPublicChatMessageStream = async (
     onToken: (delta: string) => void,
     onMetadata: (meta: { state: string; progress: number; isComplete: boolean; currentFieldIndex: number; totalFields: number }) => void,
 ): Promise<void> => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
-    const res = await fetch(`${apiBase}/api/public/chat/${token}/stream`, {
+    const res = await fetch(`${API_BASE_URL}/public/chat/${token}/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, message }),
