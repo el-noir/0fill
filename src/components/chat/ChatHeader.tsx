@@ -1,6 +1,5 @@
 import React from 'react';
 import Image from 'next/image';
-import { ChatProgress } from './ChatProgress';
 import { ProgressDetail } from './types';
 
 interface ChatHeaderProps {
@@ -16,6 +15,20 @@ interface ChatHeaderProps {
 export function ChatHeader({ title, aiName, chatState, progress, progressDetail, removeBranding, themeColor = "#10b981" }: ChatHeaderProps) {
     const isCompleted = chatState === 'COMPLETED';
     const isError = chatState === 'ERROR';
+    const isReviewing = chatState === 'CONFIRMING' || chatState === 'READY_TO_SUBMIT';
+
+    const progressLabel = (() => {
+        if (isCompleted) return 'Completed';
+        if (isError) return 'Submission failed';
+        if (isReviewing) return 'Review your answers';
+        if (progressDetail && progressDetail.totalFields > 0) {
+            const current = Math.min(progressDetail.currentFieldIndex + 1, progressDetail.totalFields);
+            return `Question ${current} of ${progressDetail.totalFields}`;
+        }
+        return `${progress}% Complete`;
+    })();
+
+    const progressValue = progressDetail?.percentage ?? progress;
 
     return (
         <div className="shrink-0">
@@ -42,12 +55,12 @@ export function ChatHeader({ title, aiName, chatState, progress, progressDetail,
                     ) : (
                         <div className="flex items-center gap-3">
                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest tabular-nums">
-                                {progress}% <span className="text-gray-600 ml-1">Complete</span>
+                                {progressValue}% <span className="text-gray-600 ml-1">Complete</span>
                             </p>
                             <div className="w-16 h-1 bg-gray-800/60 rounded-full overflow-hidden shrink-0 border border-white/5">
                                 <div
                                     className="h-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
-                                    style={{ width: `${progress}%`, backgroundColor: themeColor }}
+                                    style={{ width: `${progressValue}%`, backgroundColor: themeColor }}
                                 />
                             </div>
                         </div>
@@ -55,19 +68,23 @@ export function ChatHeader({ title, aiName, chatState, progress, progressDetail,
                 </div>
             </header>
 
-            {/* Detailed progress panel */}
-            {progressDetail ? (
-                <ChatProgress progressDetail={progressDetail} chatState={chatState} />
-            ) : (
-                /* Fallback: simple progress bar for non-detailed states */
-                !isCompleted && (
-                    <div className="h-[1px] bg-gray-900 w-full overflow-hidden">
+            {!isCompleted && (
+                <div className="px-4 py-2.5 border-b border-white/5 bg-[#0B0B0F]/90">
+                    <div className="flex items-center justify-between gap-4 mb-2">
+                        <p className="text-xs font-medium text-gray-400 truncate">
+                            {progressLabel}
+                        </p>
+                        <p className="text-[10px] text-gray-600 tabular-nums shrink-0">
+                            {progressValue}%
+                        </p>
+                    </div>
+                    <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
                         <div
-                            className="h-full transition-all duration-500 ease-out"
-                            style={{ width: `${progress}%`, backgroundColor: themeColor, opacity: 0.3 }}
+                            className="h-full rounded-full transition-all duration-700 ease-out"
+                            style={{ width: `${progressValue}%`, backgroundColor: isError ? '#f87171' : themeColor }}
                         />
                     </div>
-                )
+                </div>
             )}
         </div>
     );

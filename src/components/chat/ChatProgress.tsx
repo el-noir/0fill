@@ -254,36 +254,32 @@ export function ChatProgress({ progressDetail, chatState, themeColor = "#10b981"
 export function ChatProgressCompact({ progressDetail, chatState, themeColor = "#10b981" }: ChatProgressProps) {
     const isDone = chatState === 'COMPLETED';
     const isError = chatState === 'ERROR';
+    const isReviewing = chatState === 'CONFIRMING' || chatState === 'READY_TO_SUBMIT';
+    const current = Math.min(progressDetail.currentFieldIndex + 1, progressDetail.totalFields);
+    const label = isDone
+        ? 'Done'
+        : isError
+            ? 'Failed'
+            : isReviewing
+                ? 'Review'
+                : `Q ${current}/${progressDetail.totalFields}`;
 
     return (
-        <div className="flex items-center gap-2.5">
-            {/* Mini dot indicator (max 10 shown, rest collapsed) */}
-            <div className="flex items-center gap-0.5">
-                {progressDetail.fields.slice(0, 10).map((field) => (
-                    <div
-                        key={field.fieldId}
-                        className={cn(
-                            'w-1.5 h-1.5 rounded-full transition-all duration-300',
-                            field.status === 'completed' && 'opacity-80',
-                            field.status === 'current' && 'scale-125',
-                            field.status === 'upcoming' && 'bg-gray-700',
-                            field.status === 'skipped' && 'bg-yellow-500/60',
-                        )}
-                        style={{
-                            backgroundColor: field.status === 'completed' || field.status === 'current' ? themeColor : undefined
-                        }}
-                    />
-                ))}
-                {progressDetail.totalFields > 10 && (
-                    <span className="text-[8px] text-gray-600 ml-0.5">+{progressDetail.totalFields - 10}</span>
-                )}
-            </div>
+        <div className="flex items-center gap-2.5 min-w-[88px]">
             <span className={cn(
                 'text-[10px] tabular-nums',
                 isDone || isError ? 'opacity-100' : 'text-gray-500',
             )} style={isDone ? { color: themeColor } : isError ? { color: '#f87171' } : {}}>
-                {isDone ? 'Done' : isError ? 'Failed' : `${progressDetail.percentage}%`}
+                {label}
             </span>
+            {!isDone && !isError && (
+                <div className="w-10 h-1 bg-gray-800/70 rounded-full overflow-hidden">
+                    <div
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${progressDetail.percentage}%`, backgroundColor: themeColor }}
+                    />
+                </div>
+            )}
         </div>
     );
 }
