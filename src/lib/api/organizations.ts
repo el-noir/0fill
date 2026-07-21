@@ -643,3 +643,45 @@ export const getResumeLink = async (orgId: string, formId: string, sessionId: st
     if (!res.ok) throw new Error('Failed to fetch resume link');
     return res.json();
 };
+
+export type RecoveryMessageChannel = 'email' | 'sms' | 'whatsapp' | 'dm';
+export type RecoveryMessageTone = 'friendly' | 'professional' | 'casual' | 'urgent';
+
+export const generateRecoveryMessage = async (
+    orgId: string,
+    formId: string,
+    leadId: string,
+    body: { channel: RecoveryMessageChannel; tone: RecoveryMessageTone },
+) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/leads/${leadId}/message`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to generate recovery message');
+    }
+    return res.json();
+};
+
+export const markRecoveryLeadContacted = async (
+    orgId: string,
+    formId: string,
+    leadId: string,
+    body: { channel?: RecoveryMessageChannel; subject?: string; message?: string } = {},
+) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/leads/${leadId}/contacted`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error('Failed to mark lead contacted');
+    return res.json();
+};
+
+export const dismissRecoveryLead = async (orgId: string, formId: string, leadId: string) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/leads/${leadId}/dismiss`, {
+        method: 'POST',
+    });
+    if (!res.ok) throw new Error('Failed to dismiss recovery lead');
+    return res.json();
+};

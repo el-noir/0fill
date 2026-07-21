@@ -17,16 +17,23 @@ import {
     RefreshCcw,
     TrendingUp,
     ShieldCheck,
+    Wand2,
+    MessageSquareText,
+    XCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import {
+    dismissRecoveryLead,
+    generateRecoveryMessage,
     getRecoveryStats,
     getRecoverableLeads,
+    markRecoveryLeadContacted,
     recoverLead,
     getResumeLink,
+    type RecoveryMessageChannel,
+    type RecoveryMessageTone,
 } from "@/lib/api/organizations";
-import { useAuthStore } from "@/stores/authStore";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,8 +52,29 @@ interface RecoverableLead {
     progress: number;
     lastActivityAt: string;
     isRecovered: boolean;
+    recoveryStatus?: "new" | "message_generated" | "contacted" | "recovered" | "dismissed";
+    contactedCount?: number;
+    lastContactedAt?: string;
+    lastRecoveryChannel?: RecoveryMessageChannel;
+    lastRecoveryTone?: RecoveryMessageTone;
+    lastRecoverySubject?: string;
+    lastRecoveryMessage?: string;
+    lastRecoveryGeneratedAt?: string;
     recoveryValue: number;
     answers: any[];
+    answerSummary?: Array<{ fieldId?: string; label: string; value: string }>;
+    lastAnsweredQuestion?: string | null;
+    leadCompany?: string;
+    resumeUrl?: string | null;
+}
+
+interface GeneratedRecoveryMessage {
+    subject?: string;
+    message: string;
+    resumeUrl: string;
+    channel: RecoveryMessageChannel;
+    tone: RecoveryMessageTone;
+    generatedAt: string;
 }
 
 interface RecoveryPanelProps {
@@ -54,6 +82,32 @@ interface RecoveryPanelProps {
     formId: string;
     formTitle: string;
 }
+
+type RecoveryStatusFilter = "active" | "new" | "message_generated" | "contacted" | "recovered" | "dismissed" | "all";
+
+const STATUS_FILTERS: Array<{ id: RecoveryStatusFilter; label: string }> = [
+    { id: "active", label: "Active" },
+    { id: "new", label: "New" },
+    { id: "message_generated", label: "Drafted" },
+    { id: "contacted", label: "Contacted" },
+    { id: "recovered", label: "Recovered" },
+    { id: "dismissed", label: "Dismissed" },
+    { id: "all", label: "All" },
+];
+
+const CHANNEL_OPTIONS: Array<{ value: RecoveryMessageChannel; label: string }> = [
+    { value: "email", label: "Email" },
+    { value: "sms", label: "SMS" },
+    { value: "whatsapp", label: "WhatsApp" },
+    { value: "dm", label: "DM" },
+];
+
+const TONE_OPTIONS: Array<{ value: RecoveryMessageTone; label: string }> = [
+    { value: "friendly", label: "Friendly" },
+    { value: "professional", label: "Professional" },
+    { value: "casual", label: "Casual" },
+    { value: "urgent", label: "Urgent" },
+];
 
 // ─── Helper Components ────────────────────────────────────────────────────────
 
@@ -101,6 +155,14 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+    const [activeLeadId, setActiveLeadId] = useState<string | null>(null);
+    const [statusFilter, setStatusFilter] = useState<RecoveryStatusFilter>("active");
+    const [channel, setChannel] = useState<RecoveryMessageChannel>("email");
+    const [tone, setTone] = useState<RecoveryMessageTone>("friendly");
+    const [generatingId, setGeneratingId] = useState<string | null>(null);
+    const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
+    const [generatedMessages, setGeneratedMessages] = useState<Record<string, GeneratedRecoveryMessage>>({});
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
@@ -126,7 +188,11 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         try {
             await recoverLead(orgId, formId, lead._id, !lead.isRecovered);
             setLeads(prev => prev.map(l => 
-                l._id === lead._id ? { ...l, isRecovered: !l.isRecovered } : l
+                l._id === lead._id ? {
+                    ...l,
+                    isRecovered: !l.isRecovered,
+                    recoveryStatus: !l.isRecovered ? "recovered" : "new",
+                } : l
             ));
             // Refresh stats to update recoveredCount
             const newStats = await getRecoveryStats(orgId, formId);
@@ -138,7 +204,7 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
 
     const handleCopyResumeLink = async (lead: RecoverableLead) => {
         try {
-            const { resumeUrl } = await getResumeLink(orgId, formId, lead.sessionId);
+            const resumeUrl = lead.resumeUrl || (await getResumeLink(orgId, formId, lead.sessionId)).resumeUrl;
             await navigator.clipboard.writeText(resumeUrl);
             setCopiedId(lead._id);
             setTimeout(() => setCopiedId(null), 2000);
@@ -147,12 +213,96 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         }
     };
 
+    const handleGenerateMessage = async (lead: RecoverableLead) => {
+        setActiveLeadId(lead._id);
+        setGeneratingId(lead._id);
+        try {
+            const draft = await generateRecoveryMessage(orgId, formId, lead._id, { channel, tone });
+            setGeneratedMessages(prev => ({ ...prev, [lead._id]: draft }));
+            setLeads(prev => prev.map(l => l._id === lead._id ? {
+                ...l,
+                recoveryStatus: l.recoveryStatus === "contacted" || l.recoveryStatus === "recovered" || l.recoveryStatus === "dismissed" ? l.recoveryStatus : "message_generated",
+                lastRecoveryChannel: draft.channel,
+                lastRecoveryTone: draft.tone,
+                lastRecoverySubject: draft.subject,
+                lastRecoveryMessage: draft.message,
+                lastRecoveryGeneratedAt: draft.generatedAt,
+                resumeUrl: draft.resumeUrl,
+            } : l));
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setGeneratingId(null);
+        }
+    };
+
+    const getLeadDraft = (lead: RecoverableLead): GeneratedRecoveryMessage | null => {
+        if (generatedMessages[lead._id]) return generatedMessages[lead._id];
+        if (!lead.lastRecoveryMessage) return null;
+        return {
+            subject: lead.lastRecoverySubject,
+            message: lead.lastRecoveryMessage,
+            resumeUrl: lead.resumeUrl || "",
+            channel: lead.lastRecoveryChannel || "email",
+            tone: lead.lastRecoveryTone || "friendly",
+            generatedAt: lead.lastRecoveryGeneratedAt || lead.lastActivityAt,
+        };
+    };
+
+    const handleCopyMessage = async (lead: RecoverableLead) => {
+        const draft = getLeadDraft(lead);
+        if (!draft) return;
+        const content = draft.subject ? `Subject: ${draft.subject}\n\n${draft.message}` : draft.message;
+        await navigator.clipboard.writeText(content);
+        setCopiedMessageId(lead._id);
+        setTimeout(() => setCopiedMessageId(null), 2000);
+    };
+
+    const handleMarkContacted = async (lead: RecoverableLead) => {
+        const draft = getLeadDraft(lead);
+        setStatusUpdatingId(lead._id);
+        try {
+            await markRecoveryLeadContacted(orgId, formId, lead._id, {
+                channel: draft?.channel || channel,
+                subject: draft?.subject,
+                message: draft?.message,
+            });
+            setLeads(prev => prev.map(l => l._id === lead._id ? {
+                ...l,
+                recoveryStatus: "contacted",
+                contactedCount: (l.contactedCount || 0) + 1,
+                lastContactedAt: new Date().toISOString(),
+            } : l));
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setStatusUpdatingId(null);
+        }
+    };
+
+    const handleDismiss = async (lead: RecoverableLead) => {
+        setStatusUpdatingId(lead._id);
+        try {
+            await dismissRecoveryLead(orgId, formId, lead._id);
+            setLeads(prev => prev.map(l => l._id === lead._id ? {
+                ...l,
+                recoveryStatus: "dismissed",
+            } : l));
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setStatusUpdatingId(null);
+        }
+    };
+
     const handleExportCSV = () => {
-        const headers = ["Email", "Name", "Progress", "Last Activity", "Recovered", "Potential Value"];
+        const headers = ["Email", "Name", "Progress", "Status", "Contacted Count", "Last Activity", "Recovered", "Potential Value"];
         const rows = leads.map(l => [
             l.leadEmail,
             l.leadName || "",
             `${l.progress}%`,
+            l.recoveryStatus || "new",
+            l.contactedCount || 0,
             new Date(l.lastActivityAt).toLocaleString(),
             l.isRecovered ? "Yes" : "No",
             l.recoveryValue || 0,
@@ -170,10 +320,42 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         document.body.removeChild(link);
     };
 
-    const filteredLeads = leads.filter(l => 
-        l.leadEmail.toLowerCase().includes(search.toLowerCase()) ||
-        (l.leadName && l.leadName.toLowerCase().includes(search.toLowerCase()))
-    );
+    const getStatus = (lead: RecoverableLead) => lead.isRecovered ? "recovered" : (lead.recoveryStatus || "new");
+
+    const filteredLeads = leads.filter(l => {
+        const matchesSearch =
+            l.leadEmail.toLowerCase().includes(search.toLowerCase()) ||
+            (l.leadName && l.leadName.toLowerCase().includes(search.toLowerCase())) ||
+            (l.leadCompany && l.leadCompany.toLowerCase().includes(search.toLowerCase()));
+        const status = getStatus(l);
+        const matchesStatus =
+            statusFilter === "all" ||
+            (statusFilter === "active" && status !== "dismissed" && status !== "recovered") ||
+            status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
+
+    const statusCounts = leads.reduce<Record<string, number>>((acc, lead) => {
+        const status = getStatus(lead);
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+    }, {});
+
+    const statusStyles: Record<string, string> = {
+        new: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+        message_generated: "bg-brand-purple/10 text-brand-purple border-brand-purple/20",
+        contacted: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+        recovered: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+        dismissed: "bg-gray-800 text-gray-500 border-gray-700",
+    };
+
+    const statusLabel: Record<string, string> = {
+        new: "New",
+        message_generated: "Drafted",
+        contacted: "Contacted",
+        recovered: "Recovered",
+        dismissed: "Dismissed",
+    };
 
     return (
         <div className="space-y-8 pb-20">
@@ -213,6 +395,29 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                 onChange={e => setSearch(e.target.value)}
                                 className="w-full bg-black/40 border border-gray-800 rounded-xl px-10 py-2.5 text-xs text-white placeholder:text-gray-700 focus:outline-none focus:border-brand-purple/40 transition-all font-medium"
                             />
+                        </div>
+                        <div className="hidden xl:flex items-center gap-1.5">
+                            {STATUS_FILTERS.map(({ id, label }) => {
+                                const count =
+                                    id === "active"
+                                        ? leads.filter(l => getStatus(l) !== "dismissed" && getStatus(l) !== "recovered").length
+                                        : id === "all"
+                                            ? leads.length
+                                            : statusCounts[id] || 0;
+                                return (
+                                <button
+                                    key={id}
+                                    onClick={() => setStatusFilter(id)}
+                                    className={`px-2.5 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-tight transition-all ${
+                                        statusFilter === id
+                                            ? "border-brand-purple/50 text-white bg-brand-purple/10"
+                                            : "border-gray-800 text-gray-600 hover:text-gray-300 hover:border-gray-700"
+                                    }`}
+                                >
+                                    {label} <span className="text-gray-600 ml-1">{count}</span>
+                                </button>
+                                );
+                            })}
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -262,9 +467,14 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                         </td>
                                     </tr>
                                 ) : (
-                                    filteredLeads.map((lead, idx) => (
+                                    filteredLeads.map((lead, idx) => {
+                                        const status = getStatus(lead);
+                                        const draft = getLeadDraft(lead);
+                                        const isComposerOpen = activeLeadId === lead._id;
+
+                                        return (
+                                            <React.Fragment key={lead._id}>
                                         <motion.tr 
-                                            key={lead._id}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
@@ -281,16 +491,15 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex flex-wrap items-center gap-2">
                                                             <span className="text-xs text-white font-bold">{lead.leadEmail}</span>
-                                                            {lead.isRecovered && (
-                                                                <span className="bg-emerald-500/10 text-emerald-500 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border border-emerald-500/20">
-                                                                    Recovered
-                                                                </span>
-                                                            )}
+                                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter border ${statusStyles[status] || statusStyles.new}`}>
+                                                                {statusLabel[status] || "New"}
+                                                            </span>
                                                         </div>
                                                         <p className="text-[10px] text-gray-600 font-medium mt-0.5">
-                                                            {lead.leadName ? `${lead.leadName} · ` : ''} 
+                                                            {lead.leadName ? `${lead.leadName} / ` : ""}
+                                                            {lead.leadCompany ? `${lead.leadCompany} / ` : ""}
                                                             Session {lead.sessionId.slice(0, 8)}
                                                         </p>
                                                     </div>
@@ -311,9 +520,16 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
-                                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                                                    <Clock className="w-3.5 h-3.5 text-gray-600" />
-                                                    {formatDistanceToNow(new Date(lead.lastActivityAt))} ago
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                                                        <Clock className="w-3.5 h-3.5 text-gray-600" />
+                                                        {formatDistanceToNow(new Date(lead.lastActivityAt))} ago
+                                                    </div>
+                                                    {lead.contactedCount ? (
+                                                        <p className="text-[10px] text-gray-600 font-bold uppercase">
+                                                            Contacted {lead.contactedCount}x
+                                                        </p>
+                                                    ) : null}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
@@ -323,12 +539,19 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                             </td>
                                             <td className="px-6 py-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => setActiveLeadId(isComposerOpen ? null : lead._id)}
+                                                        className={`p-2 rounded-lg border transition-all ${isComposerOpen ? "bg-brand-purple/10 border-brand-purple/30 text-brand-purple" : "bg-gray-900 border-gray-800 text-gray-500 hover:text-white hover:border-gray-700"}`}
+                                                        title="Open recovery composer"
+                                                    >
+                                                        <MessageSquareText className="w-4 h-4" />
+                                                    </button>
                                                     <button 
                                                         onClick={() => handleCopyResumeLink(lead)}
                                                         className={`p-2 rounded-lg transition-all ${copiedId === lead._id ? 'bg-emerald-500/10 text-emerald-500' : 'bg-gray-900 border border-gray-800 text-gray-500 hover:text-white hover:border-gray-700'}`}
-                                                        title="Copy Resume Link"
+                                                        title="Copy resume link"
                                                     >
-                                                        {copiedId === lead._id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                        {copiedId === lead._id ? <Check className="w-4 h-4" /> : <LinkIcon className="w-4 h-4" />}
                                                     </button>
                                                     <button 
                                                         onClick={() => handleToggleRecovered(lead)}
@@ -340,7 +563,132 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                                 </div>
                                             </td>
                                         </motion.tr>
-                                    ))
+
+                                        {isComposerOpen && (
+                                            <motion.tr
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                className="bg-[#07070a]"
+                                            >
+                                                <td colSpan={5} className="px-6 pb-6">
+                                                    <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-5 border border-gray-800/70 rounded-2xl p-4 bg-black/30">
+                                                        <div className="space-y-4">
+                                                            <div>
+                                                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-2">Lead Context</p>
+                                                                <div className="space-y-2">
+                                                                    {(lead.answerSummary || []).slice(0, 4).map(answer => (
+                                                                        <div key={`${lead._id}-${answer.fieldId || answer.label}`} className="rounded-xl border border-gray-800/70 bg-[#111116]/60 p-3">
+                                                                            <p className="text-[10px] text-gray-600 font-black uppercase tracking-tight truncate">{answer.label}</p>
+                                                                            <p className="text-xs text-gray-300 font-semibold mt-1 line-clamp-2">{answer.value}</p>
+                                                                        </div>
+                                                                    ))}
+                                                                    {(lead.answerSummary || []).length === 0 && (
+                                                                        <p className="text-xs text-gray-600 font-medium">No saved answers yet.</p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                <label className="space-y-1">
+                                                                    <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Channel</span>
+                                                                    <select
+                                                                        value={channel}
+                                                                        onChange={e => setChannel(e.target.value as RecoveryMessageChannel)}
+                                                                        className="w-full bg-[#111116] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-purple/40"
+                                                                    >
+                                                                        {CHANNEL_OPTIONS.map(option => (
+                                                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </label>
+                                                                <label className="space-y-1">
+                                                                    <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Tone</span>
+                                                                    <select
+                                                                        value={tone}
+                                                                        onChange={e => setTone(e.target.value as RecoveryMessageTone)}
+                                                                        className="w-full bg-[#111116] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-purple/40"
+                                                                    >
+                                                                        {TONE_OPTIONS.map(option => (
+                                                                            <option key={option.value} value={option.value}>{option.label}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </label>
+                                                            </div>
+
+                                                            <button
+                                                                onClick={() => handleGenerateMessage(lead)}
+                                                                disabled={generatingId === lead._id}
+                                                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-purple text-white text-xs font-black uppercase tracking-tight hover:bg-brand-purple/90 transition-all disabled:opacity-50"
+                                                            >
+                                                                {generatingId === lead._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                                                                {draft ? "Regenerate Draft" : "Generate Draft"}
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="min-h-[260px] rounded-2xl border border-gray-800/70 bg-[#111116]/50 p-4 flex flex-col">
+                                                            {draft ? (
+                                                                <>
+                                                                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                                                        <div>
+                                                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Recovery Draft</p>
+                                                                            <p className="text-[10px] text-gray-700 font-bold mt-1 uppercase">
+                                                                                {draft.channel} / {draft.tone} / {formatDistanceToNow(new Date(draft.generatedAt))} ago
+                                                                            </p>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => handleCopyMessage(lead)}
+                                                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all ${copiedMessageId === lead._id ? "bg-emerald-500/10 text-emerald-500" : "bg-gray-900 border border-gray-800 text-gray-400 hover:text-white"}`}
+                                                                        >
+                                                                            {copiedMessageId === lead._id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                                                                            {copiedMessageId === lead._id ? "Copied" : "Copy"}
+                                                                        </button>
+                                                                    </div>
+                                                                    {draft.subject && (
+                                                                        <div className="mb-3 rounded-xl border border-gray-800 bg-black/30 p-3">
+                                                                            <p className="text-[10px] text-gray-600 font-black uppercase tracking-tight">Subject</p>
+                                                                            <p className="text-sm text-white font-bold mt-1">{draft.subject}</p>
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="flex-1 rounded-xl border border-gray-800 bg-black/30 p-3">
+                                                                        <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">{draft.message}</p>
+                                                                    </div>
+                                                                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                                                                        <button
+                                                                            onClick={() => handleMarkContacted(lead)}
+                                                                            disabled={statusUpdatingId === lead._id}
+                                                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500/10 text-amber-400 text-[10px] font-black uppercase tracking-tight hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                                                                        >
+                                                                            {statusUpdatingId === lead._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                                                                            Mark Contacted
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDismiss(lead)}
+                                                                            disabled={statusUpdatingId === lead._id}
+                                                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-800 text-gray-500 text-[10px] font-black uppercase tracking-tight hover:text-rose-400 hover:border-rose-500/30 transition-all disabled:opacity-50"
+                                                                        >
+                                                                            <XCircle className="w-3.5 h-3.5" />
+                                                                            Dismiss
+                                                                        </button>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <div className="flex flex-1 flex-col items-center justify-center text-center">
+                                                                    <Wand2 className="w-6 h-6 text-gray-700 mb-3" />
+                                                                    <p className="text-sm text-gray-400 font-bold">No draft yet</p>
+                                                                    <p className="text-xs text-gray-600 mt-1 max-w-sm">
+                                                                        Generate a message, then copy it into your email, SMS, WhatsApp, or DM tool.
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        )}
+                                            </React.Fragment>
+                                        );
+                                    })
                                 )}
                             </AnimatePresence>
                         </tbody>
