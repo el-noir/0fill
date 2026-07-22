@@ -646,6 +646,73 @@ export const getResumeLink = async (orgId: string, formId: string, sessionId: st
 
 export type RecoveryMessageChannel = 'email' | 'sms' | 'whatsapp' | 'dm';
 export type RecoveryMessageTone = 'friendly' | 'professional' | 'casual' | 'urgent';
+export type RecoveryCampaignSettings = {
+    enabled: boolean;
+    senderMode: 'user' | 'organization';
+    senderEmail?: string;
+    replyToEmail?: string;
+    webhookUrl?: string;
+    webhookSecret?: string;
+    maxAttempts: number;
+    attemptDelaysHours: number[];
+    tone: RecoveryMessageTone;
+    sendEmail: boolean;
+    sendWebhook: boolean;
+};
+
+export const getRecoveryCampaign = async (orgId: string, formId: string) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/campaign`);
+    if (!res.ok) throw new Error('Failed to fetch recovery campaign');
+    return res.json();
+};
+
+export const updateRecoveryCampaign = async (
+    orgId: string,
+    formId: string,
+    body: Partial<RecoveryCampaignSettings>,
+) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/campaign`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to update recovery campaign');
+    }
+    return res.json();
+};
+
+export const testRecoveryCampaignEmail = async (
+    orgId: string,
+    formId: string,
+    to?: string,
+) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/campaign/test-email`, {
+        method: 'POST',
+        body: JSON.stringify({ to }),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to send test email');
+    }
+    return res.json();
+};
+
+export const testRecoveryCampaignWebhook = async (
+    orgId: string,
+    formId: string,
+    url?: string,
+) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/campaign/test-webhook`, {
+        method: 'POST',
+        body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to test recovery webhook');
+    }
+    return res.json();
+};
 
 export const generateRecoveryMessage = async (
     orgId: string,
@@ -675,6 +742,17 @@ export const markRecoveryLeadContacted = async (
         body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error('Failed to mark lead contacted');
+    return res.json();
+};
+
+export const sendRecoveryEmail = async (orgId: string, formId: string, leadId: string) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/leads/${leadId}/send-email`, {
+        method: 'POST',
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to send recovery email');
+    }
     return res.json();
 };
 

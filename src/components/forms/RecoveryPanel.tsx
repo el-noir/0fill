@@ -20,17 +20,26 @@ import {
     Wand2,
     MessageSquareText,
     XCircle,
+    Send,
+    Settings2,
+    Webhook,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import {
     dismissRecoveryLead,
     generateRecoveryMessage,
+    getRecoveryCampaign,
     getRecoveryStats,
     getRecoverableLeads,
     markRecoveryLeadContacted,
     recoverLead,
     getResumeLink,
+    sendRecoveryEmail,
+    testRecoveryCampaignEmail,
+    testRecoveryCampaignWebhook,
+    updateRecoveryCampaign,
+    type RecoveryCampaignSettings,
     type RecoveryMessageChannel,
     type RecoveryMessageTone,
 } from "@/lib/api/organizations";
@@ -66,6 +75,11 @@ interface RecoverableLead {
     lastAnsweredQuestion?: string | null;
     leadCompany?: string;
     resumeUrl?: string | null;
+    recoveryCampaignAttemptCount?: number;
+    nextRecoveryAt?: string | null;
+    lastRecoverySentAt?: string | null;
+    recoveryEmailStatus?: "idle" | "scheduled" | "sent" | "failed" | "skipped";
+    recoveryLastError?: string | null;
 }
 
 interface GeneratedRecoveryMessage {
@@ -108,6 +122,16 @@ const TONE_OPTIONS: Array<{ value: RecoveryMessageTone; label: string }> = [
     { value: "casual", label: "Casual" },
     { value: "urgent", label: "Urgent" },
 ];
+
+const DEFAULT_CAMPAIGN: RecoveryCampaignSettings = {
+    enabled: false,
+    senderMode: "user",
+    maxAttempts: 3,
+    attemptDelaysHours: [24, 72],
+    tone: "friendly",
+    sendEmail: true,
+    sendWebhook: false,
+};
 
 // ─── Helper Components ────────────────────────────────────────────────────────
 
@@ -162,17 +186,26 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
     const [tone, setTone] = useState<RecoveryMessageTone>("friendly");
     const [generatingId, setGeneratingId] = useState<string | null>(null);
     const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
+    const [sendingId, setSendingId] = useState<string | null>(null);
     const [generatedMessages, setGeneratedMessages] = useState<Record<string, GeneratedRecoveryMessage>>({});
+    const [campaign, setCampaign] = useState<RecoveryCampaignSettings>(DEFAULT_CAMPAIGN);
+    const [googleConnected, setGoogleConnected] = useState(false);
+    const [campaignSaving, setCampaignSaving] = useState(false);
+    const [campaignTesting, setCampaignTesting] = useState<"email" | "webhook" | null>(null);
+    const [campaignNotice, setCampaignNotice] = useState<string | null>(null);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [s, l] = await Promise.all([
+            const [s, l, c] = await Promise.all([
                 getRecoveryStats(orgId, formId),
                 getRecoverableLeads(orgId, formId),
+                getRecoveryCampaign(orgId, formId),
             ]);
             setStats(s);
             setLeads(l);
+            setCampaign({ ...DEFAULT_CAMPAIGN, ...(c.settings || {}) });
+            setGoogleConnected(Boolean(c.googleConnected));
         } catch (error) {
             console.error("Failed to load recovery data:", error);
         } finally {
@@ -295,6 +328,81 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         }
     };
 
+    const handleSaveCampaign = async () => {
+        setCampaignSaving(true);
+        setCampaignNotice(null);
+        try {
+            const saved = await updateRecoveryCampaign(orgId, formId, campaign);
+            setCampaign({ ...DEFAULT_CAMPAIGN, ...(saved.settings || {}) });
+            setGoogleConnected(Boolean(saved.googleConnected));
+            setCampaignNotice("Campaign settings saved.");
+        } catch (err: any) {
+            setCampaignNotice(err?.message || "Failed to save campaign.");
+        } finally {
+            setCampaignSaving(false);
+        }
+    };
+
+    const handleTestEmail = async () => {
+        setCampaignTesting("email");
+        setCampaignNotice(null);
+        try {
+            await testRecoveryCampaignEmail(orgId, formId, campaign.senderEmail);
+            setCampaignNotice("Test email sent.");
+        } catch (err: any) {
+            setCampaignNotice(err?.message || "Failed to send test email.");
+        } finally {
+            setCampaignTesting(null);
+        }
+    };
+
+    const handleTestWebhook = async () => {
+        setCampaignTesting("webhook");
+        setCampaignNotice(null);
+        try {
+            const result = await testRecoveryCampaignWebhook(orgId, formId, campaign.webhookUrl);
+            setCampaignNotice(result.success ? "Webhook test delivered." : result.errorMessage || "Webhook test failed.");
+        } catch (err: any) {
+            setCampaignNotice(err?.message || "Failed to test webhook.");
+        } finally {
+            setCampaignTesting(null);
+        }
+    };
+
+    const handleSendEmail = async (lead: RecoverableLead) => {
+        setSendingId(lead._id);
+        try {
+            const result = await sendRecoveryEmail(orgId, formId, lead._id);
+            if (result.message) {
+                setGeneratedMessages(prev => ({
+                    ...prev,
+                    [lead._id]: {
+                        subject: result.subject,
+                        message: result.message,
+                        resumeUrl: result.resumeUrl,
+                        channel: "email",
+                        tone: campaign.tone,
+                        generatedAt: new Date().toISOString(),
+                    },
+                }));
+            }
+            setLeads(prev => prev.map(l => l._id === lead._id ? {
+                ...l,
+                recoveryStatus: "contacted",
+                contactedCount: (l.contactedCount || 0) + 1,
+                recoveryCampaignAttemptCount: (l.recoveryCampaignAttemptCount || 0) + 1,
+                recoveryEmailStatus: "sent",
+                lastContactedAt: new Date().toISOString(),
+                lastRecoverySentAt: new Date().toISOString(),
+                recoveryLastError: null,
+            } : l));
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setSendingId(null);
+        }
+    };
+
     const handleExportCSV = () => {
         const headers = ["Email", "Name", "Progress", "Status", "Contacted Count", "Last Activity", "Recovered", "Potential Value"];
         const rows = leads.map(l => [
@@ -380,6 +488,147 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                     icon={CheckCircle2} 
                     color="blue-500"
                 />
+            </div>
+
+            <div className="bg-[#0b0b0f] border border-gray-800/80 rounded-2xl overflow-hidden">
+                <div className="p-5 border-b border-gray-800/80 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-[#111116]/30">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center text-brand-purple">
+                            <Settings2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm text-white font-black tracking-tight">Automatic Recovery Campaign</h3>
+                            <p className="text-xs text-gray-600 font-medium">Google email sending with webhook push for abandoned leads.</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-lg border text-[10px] font-black uppercase ${googleConnected ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" : "border-amber-500/20 bg-amber-500/10 text-amber-400"}`}>
+                            {googleConnected ? "Google Connected" : "Google Needed"}
+                        </span>
+                        <button
+                            onClick={() => setCampaign(prev => ({ ...prev, enabled: !prev.enabled }))}
+                            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-tight transition-all ${campaign.enabled ? "bg-emerald-500 text-black" : "bg-gray-900 border border-gray-800 text-gray-400 hover:text-white"}`}
+                        >
+                            {campaign.enabled ? "Enabled" : "Disabled"}
+                        </button>
+                    </div>
+                </div>
+                <div className="p-5 grid grid-cols-1 xl:grid-cols-[1fr_1fr_280px] gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label className="space-y-1">
+                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Sender</span>
+                            <select
+                                value={campaign.senderMode}
+                                onChange={e => setCampaign(prev => ({ ...prev, senderMode: e.target.value as "user" | "organization" }))}
+                                className="w-full bg-[#111116] border border-gray-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-purple/40"
+                            >
+                                <option value="user">Connected user mailbox</option>
+                                <option value="organization">Organization sender address</option>
+                            </select>
+                        </label>
+                        <label className="space-y-1">
+                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Sender / Test Email</span>
+                            <input
+                                value={campaign.senderEmail || ""}
+                                onChange={e => setCampaign(prev => ({ ...prev, senderEmail: e.target.value }))}
+                                placeholder="name@company.com"
+                                className="w-full bg-[#111116] border border-gray-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-gray-700 focus:outline-none focus:border-brand-purple/40"
+                            />
+                        </label>
+                        <label className="space-y-1">
+                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Tone</span>
+                            <select
+                                value={campaign.tone}
+                                onChange={e => setCampaign(prev => ({ ...prev, tone: e.target.value as RecoveryMessageTone }))}
+                                className="w-full bg-[#111116] border border-gray-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-purple/40"
+                            >
+                                {TONE_OPTIONS.map(option => (
+                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                            </select>
+                        </label>
+                        <label className="space-y-1">
+                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Max Attempts</span>
+                            <input
+                                type="number"
+                                min={1}
+                                max={3}
+                                value={campaign.maxAttempts}
+                                onChange={e => setCampaign(prev => ({ ...prev, maxAttempts: Number(e.target.value) }))}
+                                className="w-full bg-[#111116] border border-gray-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-purple/40"
+                            />
+                        </label>
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="space-y-1 block">
+                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Webhook URL</span>
+                            <input
+                                value={campaign.webhookUrl || ""}
+                                onChange={e => setCampaign(prev => ({ ...prev, webhookUrl: e.target.value, sendWebhook: Boolean(e.target.value.trim()) }))}
+                                placeholder="https://hooks.zapier.com/..."
+                                className="w-full bg-[#111116] border border-gray-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-gray-700 focus:outline-none focus:border-brand-purple/40"
+                            />
+                        </label>
+                        <label className="space-y-1 block">
+                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Webhook Secret</span>
+                            <input
+                                value={campaign.webhookSecret || ""}
+                                onChange={e => setCampaign(prev => ({ ...prev, webhookSecret: e.target.value }))}
+                                placeholder="Optional HMAC secret"
+                                className="w-full bg-[#111116] border border-gray-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-gray-700 focus:outline-none focus:border-brand-purple/40"
+                            />
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                            <label className="flex items-center gap-2 rounded-xl border border-gray-800 bg-[#111116]/60 px-3 py-2.5">
+                                <input
+                                    type="checkbox"
+                                    checked={campaign.sendEmail}
+                                    onChange={e => setCampaign(prev => ({ ...prev, sendEmail: e.target.checked }))}
+                                />
+                                <span className="text-xs text-gray-300 font-bold">Send email</span>
+                            </label>
+                            <label className="flex items-center gap-2 rounded-xl border border-gray-800 bg-[#111116]/60 px-3 py-2.5">
+                                <input
+                                    type="checkbox"
+                                    checked={campaign.sendWebhook}
+                                    onChange={e => setCampaign(prev => ({ ...prev, sendWebhook: e.target.checked }))}
+                                />
+                                <span className="text-xs text-gray-300 font-bold">Push webhook</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <button
+                            onClick={handleSaveCampaign}
+                            disabled={campaignSaving}
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-black text-xs font-black uppercase tracking-tight hover:bg-gray-200 transition-all disabled:opacity-50"
+                        >
+                            {campaignSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                            Save Campaign
+                        </button>
+                        <button
+                            onClick={handleTestEmail}
+                            disabled={campaignTesting === "email"}
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-300 text-xs font-black uppercase tracking-tight hover:text-white transition-all disabled:opacity-50"
+                        >
+                            {campaignTesting === "email" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                            Test Email
+                        </button>
+                        <button
+                            onClick={handleTestWebhook}
+                            disabled={campaignTesting === "webhook" || !campaign.webhookUrl}
+                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-300 text-xs font-black uppercase tracking-tight hover:text-white transition-all disabled:opacity-50"
+                        >
+                            {campaignTesting === "webhook" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Webhook className="w-4 h-4" />}
+                            Test Webhook
+                        </button>
+                        {campaignNotice && (
+                            <p className="text-[11px] text-gray-500 font-semibold leading-relaxed">{campaignNotice}</p>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Main Table Area */}
@@ -530,6 +779,15 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                                             Contacted {lead.contactedCount}x
                                                         </p>
                                                     ) : null}
+                                                    {lead.recoveryEmailStatus && lead.recoveryEmailStatus !== "idle" ? (
+                                                        <p className={`text-[10px] font-bold uppercase ${
+                                                            lead.recoveryEmailStatus === "failed" ? "text-rose-400" :
+                                                            lead.recoveryEmailStatus === "sent" ? "text-emerald-400" :
+                                                            "text-gray-600"
+                                                        }`}>
+                                                            Email {lead.recoveryEmailStatus}
+                                                        </p>
+                                                    ) : null}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
@@ -654,6 +912,14 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                                                         <p className="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">{draft.message}</p>
                                                                     </div>
                                                                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                                                                        <button
+                                                                            onClick={() => handleSendEmail(lead)}
+                                                                            disabled={sendingId === lead._id}
+                                                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-tight hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                                                                        >
+                                                                            {sendingId === lead._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                                                                            Send Email
+                                                                        </button>
                                                                         <button
                                                                             onClick={() => handleMarkContacted(lead)}
                                                                             disabled={statusUpdatingId === lead._id}
