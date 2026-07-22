@@ -660,9 +660,62 @@ export type RecoveryCampaignSettings = {
     sendWebhook: boolean;
 };
 
+export type RecoveryDeliveryLog = {
+    _id: string;
+    organizationId: string;
+    formId: string;
+    submissionId?: string;
+    channel: 'email' | 'webhook';
+    event: string;
+    deliveryId: string;
+    status: 'pending' | 'sent' | 'failed' | 'retrying' | 'skipped';
+    attemptCount: number;
+    automatic: boolean;
+    target?: string;
+    subject?: string;
+    providerMessageId?: string;
+    httpStatus?: number;
+    latencyMs?: number;
+    nextRetryAt?: string;
+    errorMessage?: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type RecoveryDeliveryHealth = {
+    workerMode: 'database_polling';
+    pollIntervalMs: number;
+    lastRunAt: string | null;
+    scheduledCount: number;
+    dueCount: number;
+    processingCount: number;
+    sentLast24h: number;
+    failedLast24h: number;
+    webhookFailedLast24h: number;
+    optedOutCount: number;
+};
+
 export const getRecoveryCampaign = async (orgId: string, formId: string) => {
     const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/campaign`);
     if (!res.ok) throw new Error('Failed to fetch recovery campaign');
+    return res.json();
+};
+
+export const getRecoveryCampaignHealth = async (
+    orgId: string,
+    formId: string,
+): Promise<RecoveryDeliveryHealth> => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/campaign/health`);
+    if (!res.ok) throw new Error('Failed to fetch recovery campaign health');
+    return res.json();
+};
+
+export const getRecoveryDeliveryLogs = async (
+    orgId: string,
+    formId: string,
+): Promise<RecoveryDeliveryLog[]> => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/delivery-logs`);
+    if (!res.ok) throw new Error('Failed to fetch recovery delivery logs');
     return res.json();
 };
 
@@ -753,6 +806,14 @@ export const sendRecoveryEmail = async (orgId: string, formId: string, leadId: s
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || 'Failed to send recovery email');
     }
+    return res.json();
+};
+
+export const optOutRecoveryLead = async (orgId: string, formId: string, leadId: string) => {
+    const res = await apiFetch(`${BASE(orgId)}/forms/${formId}/recovery/leads/${leadId}/opt-out`, {
+        method: 'POST',
+    });
+    if (!res.ok) throw new Error('Failed to stop recovery for lead');
     return res.json();
 };
 

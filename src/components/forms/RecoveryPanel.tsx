@@ -23,6 +23,7 @@ import {
     Send,
     Settings2,
     Webhook,
+    Activity,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
@@ -30,9 +31,12 @@ import {
     dismissRecoveryLead,
     generateRecoveryMessage,
     getRecoveryCampaign,
+    getRecoveryCampaignHealth,
+    getRecoveryDeliveryLogs,
     getRecoveryStats,
     getRecoverableLeads,
     markRecoveryLeadContacted,
+    optOutRecoveryLead,
     recoverLead,
     getResumeLink,
     sendRecoveryEmail,
@@ -40,6 +44,8 @@ import {
     testRecoveryCampaignWebhook,
     updateRecoveryCampaign,
     type RecoveryCampaignSettings,
+    type RecoveryDeliveryHealth,
+    type RecoveryDeliveryLog,
     type RecoveryMessageChannel,
     type RecoveryMessageTone,
 } from "@/lib/api/organizations";
@@ -61,7 +67,7 @@ interface RecoverableLead {
     progress: number;
     lastActivityAt: string;
     isRecovered: boolean;
-    recoveryStatus?: "new" | "message_generated" | "contacted" | "recovered" | "dismissed";
+    recoveryStatus?: "new" | "message_generated" | "contacted" | "recovered" | "dismissed" | "opted_out";
     contactedCount?: number;
     lastContactedAt?: string;
     lastRecoveryChannel?: RecoveryMessageChannel;
@@ -78,7 +84,7 @@ interface RecoverableLead {
     recoveryCampaignAttemptCount?: number;
     nextRecoveryAt?: string | null;
     lastRecoverySentAt?: string | null;
-    recoveryEmailStatus?: "idle" | "scheduled" | "sent" | "failed" | "skipped";
+    recoveryEmailStatus?: "idle" | "scheduled" | "processing" | "sent" | "failed" | "skipped";
     recoveryLastError?: string | null;
 }
 
@@ -97,7 +103,7 @@ interface RecoveryPanelProps {
     formTitle: string;
 }
 
-type RecoveryStatusFilter = "active" | "new" | "message_generated" | "contacted" | "recovered" | "dismissed" | "all";
+type RecoveryStatusFilter = "active" | "new" | "message_generated" | "contacted" | "recovered" | "dismissed" | "opted_out" | "all";
 
 const STATUS_FILTERS: Array<{ id: RecoveryStatusFilter; label: string }> = [
     { id: "active", label: "Active" },
@@ -106,6 +112,7 @@ const STATUS_FILTERS: Array<{ id: RecoveryStatusFilter; label: string }> = [
     { id: "contacted", label: "Contacted" },
     { id: "recovered", label: "Recovered" },
     { id: "dismissed", label: "Dismissed" },
+    { id: "opted_out", label: "Opted Out" },
     { id: "all", label: "All" },
 ];
 
@@ -193,19 +200,25 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
     const [campaignSaving, setCampaignSaving] = useState(false);
     const [campaignTesting, setCampaignTesting] = useState<"email" | "webhook" | null>(null);
     const [campaignNotice, setCampaignNotice] = useState<string | null>(null);
+    const [deliveryHealth, setDeliveryHealth] = useState<RecoveryDeliveryHealth | null>(null);
+    const [deliveryLogs, setDeliveryLogs] = useState<RecoveryDeliveryLog[]>([]);
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [s, l, c] = await Promise.all([
+            const [s, l, c, h, logs] = await Promise.all([
                 getRecoveryStats(orgId, formId),
                 getRecoverableLeads(orgId, formId),
                 getRecoveryCampaign(orgId, formId),
+                getRecoveryCampaignHealth(orgId, formId),
+                getRecoveryDeliveryLogs(orgId, formId),
             ]);
             setStats(s);
             setLeads(l);
             setCampaign({ ...DEFAULT_CAMPAIGN, ...(c.settings || {}) });
             setGoogleConnected(Boolean(c.googleConnected));
+            setDeliveryHealth(h);
+            setDeliveryLogs(logs);
         } catch (error) {
             console.error("Failed to load recovery data:", error);
         } finally {
@@ -335,7 +348,17 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
             const saved = await updateRecoveryCampaign(orgId, formId, campaign);
             setCampaign({ ...DEFAULT_CAMPAIGN, ...(saved.settings || {}) });
             setGoogleConnected(Boolean(saved.googleConnected));
-            setCampaignNotice("Campaign settings saved.");
+            setCampaignNotice(
+                typeof saved.scheduledCount === "number" && saved.scheduledCount > 0
+                    ? `Campaign settings saved. ${saved.scheduledCount} abandoned leads queued.`
+                    : "Campaign settings saved."
+            );
+            const [health, logs] = await Promise.all([
+                getRecoveryCampaignHealth(orgId, formId),
+                getRecoveryDeliveryLogs(orgId, formId),
+            ]);
+            setDeliveryHealth(health);
+            setDeliveryLogs(logs);
         } catch (err: any) {
             setCampaignNotice(err?.message || "Failed to save campaign.");
         } finally {
@@ -349,6 +372,7 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         try {
             await testRecoveryCampaignEmail(orgId, formId, campaign.senderEmail);
             setCampaignNotice("Test email sent.");
+            setDeliveryHealth(await getRecoveryCampaignHealth(orgId, formId));
         } catch (err: any) {
             setCampaignNotice(err?.message || "Failed to send test email.");
         } finally {
@@ -362,6 +386,12 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         try {
             const result = await testRecoveryCampaignWebhook(orgId, formId, campaign.webhookUrl);
             setCampaignNotice(result.success ? "Webhook test delivered." : result.errorMessage || "Webhook test failed.");
+            const [health, logs] = await Promise.all([
+                getRecoveryCampaignHealth(orgId, formId),
+                getRecoveryDeliveryLogs(orgId, formId),
+            ]);
+            setDeliveryHealth(health);
+            setDeliveryLogs(logs);
         } catch (err: any) {
             setCampaignNotice(err?.message || "Failed to test webhook.");
         } finally {
@@ -396,10 +426,40 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                 lastRecoverySentAt: new Date().toISOString(),
                 recoveryLastError: null,
             } : l));
+            const [health, logs] = await Promise.all([
+                getRecoveryCampaignHealth(orgId, formId),
+                getRecoveryDeliveryLogs(orgId, formId),
+            ]);
+            setDeliveryHealth(health);
+            setDeliveryLogs(logs);
         } catch (err) {
             console.error(err);
         } finally {
             setSendingId(null);
+        }
+    };
+
+    const handleOptOut = async (lead: RecoverableLead) => {
+        setStatusUpdatingId(lead._id);
+        try {
+            await optOutRecoveryLead(orgId, formId, lead._id);
+            setLeads(prev => prev.map(l => l._id === lead._id ? {
+                ...l,
+                recoveryStatus: "opted_out",
+                recoveryEmailStatus: "skipped",
+                recoveryLastError: "Lead opted out of recovery",
+                nextRecoveryAt: null,
+            } : l));
+            const [health, logs] = await Promise.all([
+                getRecoveryCampaignHealth(orgId, formId),
+                getRecoveryDeliveryLogs(orgId, formId),
+            ]);
+            setDeliveryHealth(health);
+            setDeliveryLogs(logs);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setStatusUpdatingId(null);
         }
     };
 
@@ -438,7 +498,7 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         const status = getStatus(l);
         const matchesStatus =
             statusFilter === "all" ||
-            (statusFilter === "active" && status !== "dismissed" && status !== "recovered") ||
+            (statusFilter === "active" && status !== "dismissed" && status !== "recovered" && status !== "opted_out") ||
             status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -455,6 +515,7 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         contacted: "bg-amber-500/10 text-amber-400 border-amber-500/20",
         recovered: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
         dismissed: "bg-gray-800 text-gray-500 border-gray-700",
+        opted_out: "bg-rose-500/10 text-rose-400 border-rose-500/20",
     };
 
     const statusLabel: Record<string, string> = {
@@ -463,7 +524,30 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
         contacted: "Contacted",
         recovered: "Recovered",
         dismissed: "Dismissed",
+        opted_out: "Opted Out",
     };
+
+    const logsByLead = deliveryLogs.reduce<Record<string, RecoveryDeliveryLog[]>>((acc, log) => {
+        if (!log.submissionId) return acc;
+        const key = String(log.submissionId);
+        acc[key] = acc[key] || [];
+        acc[key].push(log);
+        return acc;
+    }, {});
+
+    const deliveryStatusStyles: Record<string, string> = {
+        pending: "text-gray-500",
+        retrying: "text-amber-400",
+        sent: "text-emerald-400",
+        failed: "text-rose-400",
+        skipped: "text-gray-600",
+    };
+
+    const formatDeliveryEvent = (event: string) =>
+        event
+            .replace(/^recovery\./, "")
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, letter => letter.toUpperCase());
 
     return (
         <div className="space-y-8 pb-20">
@@ -631,6 +715,46 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                 </div>
             </div>
 
+            <div className="bg-[#0b0b0f] border border-gray-800/80 rounded-2xl overflow-hidden">
+                <div className="p-5 border-b border-gray-800/80 flex items-center justify-between gap-4 bg-[#111116]/30">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                            <Activity className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm text-white font-black tracking-tight">Delivery Health</h3>
+                            <p className="text-xs text-gray-600 font-medium">
+                                Worker {deliveryHealth?.workerMode?.replace("_", " ") || "database polling"}
+                                {deliveryHealth?.lastRunAt ? ` / last run ${formatDistanceToNow(new Date(deliveryHealth.lastRunAt))} ago` : ""}
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={loadData}
+                        className="p-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-500 hover:text-white hover:border-gray-700 transition-all"
+                        title="Refresh recovery delivery health"
+                    >
+                        <RefreshCcw className="w-4 h-4" />
+                    </button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-px bg-gray-800/60">
+                    {[
+                        ["Scheduled", deliveryHealth?.scheduledCount || 0, "text-blue-400"],
+                        ["Due", deliveryHealth?.dueCount || 0, "text-amber-400"],
+                        ["Processing", deliveryHealth?.processingCount || 0, "text-brand-purple"],
+                        ["Sent 24h", deliveryHealth?.sentLast24h || 0, "text-emerald-400"],
+                        ["Failed 24h", deliveryHealth?.failedLast24h || 0, "text-rose-400"],
+                        ["Webhook Failed", deliveryHealth?.webhookFailedLast24h || 0, "text-rose-300"],
+                        ["Opted Out", deliveryHealth?.optedOutCount || 0, "text-gray-500"],
+                    ].map(([label, value, color]) => (
+                        <div key={String(label)} className="bg-[#0b0b0f] p-4">
+                            <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest">{label}</p>
+                            <p className={`text-xl font-black mt-1 ${color}`}>{value}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             {/* Main Table Area */}
             <div className="bg-[#0b0b0f] border border-gray-800/80 rounded-2xl overflow-hidden">
                 <div className="p-5 border-b border-gray-800/80 flex items-center justify-between gap-4 bg-[#111116]/30">
@@ -649,7 +773,7 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                             {STATUS_FILTERS.map(({ id, label }) => {
                                 const count =
                                     id === "active"
-                                        ? leads.filter(l => getStatus(l) !== "dismissed" && getStatus(l) !== "recovered").length
+                                        ? leads.filter(l => getStatus(l) !== "dismissed" && getStatus(l) !== "recovered" && getStatus(l) !== "opted_out").length
                                         : id === "all"
                                             ? leads.length
                                             : statusCounts[id] || 0;
@@ -720,6 +844,7 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                         const status = getStatus(lead);
                                         const draft = getLeadDraft(lead);
                                         const isComposerOpen = activeLeadId === lead._id;
+                                        const leadLogs = logsByLead[lead._id] || [];
 
                                         return (
                                             <React.Fragment key={lead._id}>
@@ -783,9 +908,20 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                                         <p className={`text-[10px] font-bold uppercase ${
                                                             lead.recoveryEmailStatus === "failed" ? "text-rose-400" :
                                                             lead.recoveryEmailStatus === "sent" ? "text-emerald-400" :
+                                                            lead.recoveryEmailStatus === "processing" ? "text-brand-purple" :
                                                             "text-gray-600"
                                                         }`}>
                                                             Email {lead.recoveryEmailStatus}
+                                                        </p>
+                                                    ) : null}
+                                                    {lead.nextRecoveryAt ? (
+                                                        <p className="text-[10px] text-blue-400/80 font-bold uppercase">
+                                                            Next {formatDistanceToNow(new Date(lead.nextRecoveryAt), { addSuffix: true })}
+                                                        </p>
+                                                    ) : null}
+                                                    {lead.recoveryLastError ? (
+                                                        <p className="max-w-[180px] truncate text-[10px] text-rose-400/80 font-semibold" title={lead.recoveryLastError}>
+                                                            {lead.recoveryLastError}
                                                         </p>
                                                     ) : null}
                                                 </div>
@@ -843,6 +979,38 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                                                     ))}
                                                                     {(lead.answerSummary || []).length === 0 && (
                                                                         <p className="text-xs text-gray-600 font-medium">No saved answers yet.</p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div>
+                                                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-2">Delivery Timeline</p>
+                                                                <div className="space-y-2">
+                                                                    {leadLogs.slice(0, 5).map(log => (
+                                                                        <div key={log._id} className="rounded-xl border border-gray-800/70 bg-[#111116]/60 p-3">
+                                                                            <div className="flex items-center justify-between gap-2">
+                                                                                <p className="text-[10px] text-gray-400 font-black uppercase tracking-tight">
+                                                                                    {formatDeliveryEvent(log.event)}
+                                                                                </p>
+                                                                                <span className={`text-[10px] font-black uppercase ${deliveryStatusStyles[log.status] || "text-gray-500"}`}>
+                                                                                    {log.status}
+                                                                                </span>
+                                                                            </div>
+                                                                            <p className="text-[10px] text-gray-600 font-semibold mt-1">
+                                                                                {log.channel} / attempt {log.attemptCount} / {formatDistanceToNow(new Date(log.createdAt))} ago
+                                                                            </p>
+                                                                            {log.errorMessage ? (
+                                                                                <p className="text-[10px] text-rose-400/80 font-semibold mt-1 line-clamp-2">{log.errorMessage}</p>
+                                                                            ) : null}
+                                                                            {log.nextRetryAt ? (
+                                                                                <p className="text-[10px] text-blue-400/80 font-semibold mt-1">
+                                                                                    Retry {formatDistanceToNow(new Date(log.nextRetryAt), { addSuffix: true })}
+                                                                                </p>
+                                                                            ) : null}
+                                                                        </div>
+                                                                    ))}
+                                                                    {leadLogs.length === 0 && (
+                                                                        <p className="text-xs text-gray-600 font-medium">No delivery attempts yet.</p>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -935,6 +1103,14 @@ export function RecoveryPanel({ orgId, formId, formTitle }: RecoveryPanelProps) 
                                                                         >
                                                                             <XCircle className="w-3.5 h-3.5" />
                                                                             Dismiss
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleOptOut(lead)}
+                                                                            disabled={statusUpdatingId === lead._id}
+                                                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-800 text-gray-500 text-[10px] font-black uppercase tracking-tight hover:text-rose-300 hover:border-rose-500/30 transition-all disabled:opacity-50"
+                                                                        >
+                                                                            <ShieldCheck className="w-3.5 h-3.5" />
+                                                                            Stop Recovery
                                                                         </button>
                                                                     </div>
                                                                 </>
