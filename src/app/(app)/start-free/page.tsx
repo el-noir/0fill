@@ -1,14 +1,25 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback, Suspense } from 'react';
-import { ArrowRight, Send, Loader2, RotateCcw, Save } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { useSearchParams } from 'next/navigation';
+import React, { CSSProperties, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Background } from '@/components/Background';
+import { useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import {
+  ArrowRight,
+  Check,
+  Clock,
+  Loader2,
+  Mail,
+  MessageSquare,
+  RotateCcw,
+  Save,
+  Send,
+  Webhook,
+  Zap,
+} from 'lucide-react';
 import { startChat, replyChat } from '@/lib/api/chat';
 import { ChatProgress } from '@/components/chat/ChatProgress';
-import { ProgressDetail, FieldProgress } from '@/components/chat/types';
+import { FieldProgress, ProgressDetail } from '@/components/chat/types';
 
 type CheckFreeForm = {
   url: string;
@@ -20,23 +31,136 @@ type ChatMessage = {
   content: string;
 };
 
+const marketingVars = {
+  '--m-bg': 'oklch(0.985 0.003 95)',
+  '--m-fg': 'oklch(0.20 0.008 250)',
+  '--m-surface': 'oklch(0.995 0.002 95)',
+  '--m-surface-2': 'oklch(0.97 0.004 95)',
+  '--m-card': 'oklch(1 0 0)',
+  '--m-primary': 'oklch(0.58 0.14 158)',
+  '--m-primary-soft': 'oklch(0.955 0.035 158)',
+  '--m-border': 'oklch(0.905 0.005 95)',
+  '--m-border-strong': 'oklch(0.82 0.006 95)',
+  '--m-ink': 'oklch(0.19 0.008 250)',
+  '--m-ink-2': 'oklch(0.245 0.01 250)',
+} as CSSProperties;
+
+const cardShadow = 'shadow-[0_1px_2px_rgb(15_23_20/0.04),0_8px_24px_-12px_rgb(15_23_20/0.08)]';
+const liftShadow = 'shadow-[0_12px_44px_-14px_rgb(15_23_20/0.18),0_2px_6px_rgb(15_23_20/0.05)]';
+
+const previewSignals = [
+  { label: 'Import', value: 'Google Form structure', icon: MessageSquare },
+  { label: 'Preview', value: 'AI conversation flow', icon: Zap },
+  { label: 'Recover', value: 'Gmail and webhook ready', icon: Mail },
+];
+
+const routeItems = [
+  { label: 'Partial answers', value: 'saved during the session', tone: 'emerald' },
+  { label: 'Abandonment', value: 'follow-up can be queued', tone: 'amber' },
+  { label: 'Completed lead', value: 'sent to webhook routes', tone: 'slate' },
+];
+
+function getApiErrorMessage(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const response = 'response' in error ? error.response : undefined;
+  if (typeof response !== 'object' || response === null) return undefined;
+  const data = 'data' in response ? response.data : undefined;
+  if (typeof data !== 'object' || data === null) return undefined;
+  const message = 'message' in data ? data.message : undefined;
+  return typeof message === 'string' ? message : undefined;
+}
+
+function Eyebrow({ children, tone = 'primary' }: { children: React.ReactNode; tone?: 'primary' | 'ink' }) {
+  return (
+    <div
+      className={`inline-flex items-center gap-2 text-[11.5px] font-medium uppercase tracking-[0.14em] ${
+        tone === 'ink' ? 'text-emerald-300' : 'text-[var(--m-primary)]'
+      }`}
+    >
+      <span className="h-[5px] w-[5px] rounded-full bg-current" />
+      {children}
+    </div>
+  );
+}
+
+function PreviewConsole() {
+  return (
+    <aside className={`relative overflow-hidden rounded-[8px] border border-[var(--m-border)] bg-[var(--m-card)] p-3 ${liftShadow}`}>
+      <div className="rounded-[8px] border border-slate-800 bg-[var(--m-ink)] p-4 text-white">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <p className="text-[12px] font-medium text-white/50">Preview session</p>
+            <p className="mt-1 text-[15px] font-semibold">Acme demo request</p>
+          </div>
+          <span className="rounded-[6px] border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 text-[11px] font-medium text-emerald-200">
+            Live
+          </span>
+        </div>
+
+        <div className="space-y-4 py-5">
+          <div className="max-w-[82%] rounded-[8px] border border-white/10 bg-white/[0.08] p-3">
+            <p className="text-[13px] leading-6 text-white/80">
+              What should the sales team know before they call?
+            </p>
+          </div>
+          <div className="ml-auto max-w-[78%] rounded-[8px] bg-emerald-300 p-3 text-[13px] leading-6 text-slate-950">
+            We are comparing form tools for paid acquisition.
+          </div>
+          <div className="grid grid-cols-4 gap-1.5">
+            <span className="h-1.5 rounded-full bg-emerald-300" />
+            <span className="h-1.5 rounded-full bg-emerald-300" />
+            <span className="h-1.5 rounded-full bg-amber-300" />
+            <span className="h-1.5 rounded-full bg-white/[0.12]" />
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          {routeItems.map((item) => (
+            <div key={item.label} className="flex items-center justify-between rounded-[8px] border border-white/10 bg-white/[0.06] px-3 py-2.5">
+              <div>
+                <p className="text-[12px] font-medium text-white">{item.label}</p>
+                <p className="mt-0.5 text-[11.5px] text-white/45">{item.value}</p>
+              </div>
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  item.tone === 'emerald' ? 'bg-emerald-300' : item.tone === 'amber' ? 'bg-amber-300' : 'bg-slate-300'
+                }`}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        {previewSignals.map((signal) => (
+          <div key={signal.label} className="rounded-[8px] border border-[var(--m-border)] bg-[var(--m-surface-2)] p-3">
+            <signal.icon className="mb-3 h-4 w-4 text-[var(--m-primary)]" />
+            <p className="text-[12px] font-semibold text-[var(--m-fg)]">{signal.label}</p>
+            <p className="mt-1 text-[11.5px] leading-5 text-slate-500">{signal.value}</p>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
 function StartFreeContent() {
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isComplete, setIsComplete] = useState(false);
   const [collectedData, setCollectedData] = useState<Record<string, string> | null>(null);
   const [sendingMsg, setSendingMsg] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [chatState, setChatState] = useState<string>('IDLE');
   const [progressDetail, setProgressDetail] = useState<ProgressDetail | null>(null);
   const [formTitle, setFormTitle] = useState<string>('');
   const [totalFields, setTotalFields] = useState<number>(0);
   const [answeredCount, setAnsweredCount] = useState<number>(0);
   const searchParams = useSearchParams();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  /** Build a synthetic ProgressDetail from message count when backend doesn't provide one */
   const buildSyntheticProgress = useCallback((answered: number, total: number): ProgressDetail => {
     const clamped = Math.min(answered, total);
     const percentage = total > 0 ? Math.round((clamped / total) * 100) : 0;
@@ -47,6 +171,7 @@ function StartFreeContent() {
       questionNumber: i + 1,
       sectionIndex: 0,
     }));
+
     return {
       percentage,
       answeredCount: clamped,
@@ -58,26 +183,20 @@ function StartFreeContent() {
     };
   }, []);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<CheckFreeForm>({
-    mode: "onBlur",
+    mode: 'onBlur',
   });
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const onStart = async (data: CheckFreeForm) => {
-    setError("");
+    setError('');
     setLoading(true);
 
     try {
@@ -88,20 +207,21 @@ function StartFreeContent() {
       const total = response.totalFields ?? response.progressDetail?.totalFields ?? 0;
       setTotalFields(total);
       setAnsweredCount(0);
+
       if (response.progressDetail) {
         setProgressDetail(response.progressDetail);
       } else if (total > 0) {
         setProgressDetail(buildSyntheticProgress(0, total));
       }
+
       setMessages([{ id: Date.now().toString(), role: 'assistant', content: response.message }]);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to start conversation from the URL.");
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err) || 'Failed to start conversation from the URL.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Auto-start from query param if redirected from Hero
   useEffect(() => {
     const urlParam = searchParams.get('url');
     if (urlParam && !sessionId && !loading) {
@@ -115,18 +235,21 @@ function StartFreeContent() {
     if (!inputValue.trim() || !sessionId || sendingMsg || isComplete) return;
 
     const userText = inputValue.trim();
-    setInputValue("");
-    setError("");
+    setInputValue('');
+    setError('');
     setSendingMsg(true);
 
-    // Add user message to UI immediately
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: userText };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
 
     try {
       const response = await replyChat(sessionId, userText);
-      const assistantMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'assistant', content: response.message };
-      setMessages(prev => [...prev, assistantMsg]);
+      const assistantMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: response.message,
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
 
       if (response.state) {
         setChatState(response.state);
@@ -149,8 +272,8 @@ function StartFreeContent() {
         }
         setCollectedData(response.collectedData);
       }
-    } catch (err: any) {
-      setError("Failed to send message. Please try again.");
+    } catch (err: unknown) {
+      setError('Failed to send message. Please try again.');
       console.error(err);
     } finally {
       setSendingMsg(false);
@@ -171,79 +294,89 @@ function StartFreeContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0B0F] relative flex flex-col">
-      <Background />
+    <main style={marketingVars} className="min-h-[calc(100vh-5rem)] bg-[var(--m-bg)] text-[var(--m-fg)]">
+      {!sessionId ? (
+        <section className="relative overflow-hidden border-b border-[var(--m-border)]">
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(15_23_20/0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgb(15_23_20/0.045)_1px,transparent_1px)] bg-[size:56px_56px] opacity-70 [mask-image:radial-gradient(ellipse_at_top,black_14%,transparent_70%)]" />
+          <div className="relative mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1240px] items-center gap-12 px-6 py-16 md:px-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
+            <section className="max-w-2xl">
+              <Eyebrow>Preview 0Fill</Eyebrow>
+              <h1 className="mt-5 text-balance text-[42px] font-semibold leading-[1.03] text-[var(--m-fg)] md:text-[64px]">
+                Start with the form you already have.
+              </h1>
+              <p className="mt-5 max-w-xl text-[17px] leading-8 text-slate-600">
+                Paste a Google Form URL and see how 0Fill turns it into a guided conversation with progress,
+                partial capture, recovery, and routing built around the same lead.
+              </p>
 
-      <div className="flex-1 max-w-4xl mx-auto w-full flex flex-col px-4 py-8 relative z-10">
-
-        {!sessionId ? (
-          <div className="flex-1 flex flex-col justify-center items-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 text-center">
-              Convert Form to Conversation
-            </h1>
-            <p className="text-lg text-gray-400 mb-8 text-center max-w-xl">
-              Enter your Google Form URL to instantly transform it into a fluid AI chat experience.
-            </p>
-
-            <form
-              onSubmit={handleSubmit(onStart)}
-              className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-2xl"
-            >
-              <input
-                type="text"
-                placeholder="Enter Google Form URL"
-                {...register("url", { required: "URL is required" })}
-                className="w-full sm:flex-1 px-4 py-3 rounded-lg bg-[#1C1C24] border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-brand-purple"
-              />
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-3 bg-[#1C1C24] text-white font-semibold rounded-lg border border-white/10 hover:border-brand-purple/50 transition-colors shadow-[0_0_20px_rgba(16,185,129,0.15)] flex items-center gap-2 disabled:opacity-50"
+              <form
+                onSubmit={handleSubmit(onStart)}
+                className={`mt-9 rounded-[8px] border border-[var(--m-border)] bg-[var(--m-card)] p-2 ${cardShadow}`}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Connecting
-                  </>
-                ) : (
-                  <>
-                    Start Chat
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="text"
+                    placeholder="Paste Google Form URL"
+                    {...register('url', { required: 'URL is required' })}
+                    className="min-w-0 flex-1 rounded-[6px] border border-transparent bg-[var(--m-surface-2)] px-4 py-3.5 text-[15px] text-[var(--m-fg)] outline-none transition placeholder:text-slate-400 focus:border-emerald-300 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-[6px] bg-[var(--m-primary)] px-5 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Connecting
+                      </>
+                    ) : (
+                      <>
+                        Preview chat
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+                {errors.url && <p className="px-2 pt-2 text-sm text-red-600">{errors.url.message}</p>}
+                {error && <p className="px-2 pt-2 text-sm text-red-600">{error}</p>}
+              </form>
 
-            {errors.url && (
-              <p className="text-red-500 mt-2 text-center w-full max-w-2xl text-left pl-2">
-                {errors.url.message}
-              </p>
-            )}
-            {error && (
-              <p className="text-red-500 mt-4 text-center">
-                {error}
-              </p>
-            )}
+              <div className="mt-6 flex flex-wrap gap-2.5">
+                {['No account needed for preview', 'Google Forms first', 'Save when ready'].map((label) => (
+                  <span key={label} className="rounded-[6px] border border-[var(--m-border)] bg-[var(--m-surface)] px-3 py-1.5 text-[12px] font-medium text-slate-600">
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </section>
+
+            <PreviewConsole />
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col bg-[#0B0B0F]/90 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl ring-1 ring-white/5 mx-auto w-full max-w-4xl h-[700px] max-h-[85vh]">
-            {/* Header with progress */}
+        </section>
+      ) : (
+        <section className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-[1240px] gap-6 px-4 py-6 md:px-8 lg:grid-cols-[minmax(0,0.74fr)_minmax(280px,0.26fr)]">
+          <div className={`flex min-h-[720px] flex-col overflow-hidden rounded-[8px] border border-slate-800 bg-[var(--m-ink)] ${liftShadow}`}>
             <div className="shrink-0">
-              <div className="p-5 border-b border-white/10 bg-[#15151A]/80 backdrop-blur-sm flex justify-between items-center z-10 relative">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></div>
+              <div className="relative z-10 flex items-center justify-between border-b border-white/10 bg-[var(--m-ink-2)] px-5 py-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] bg-emerald-300 text-slate-950">
+                    <MessageSquare className="h-4 w-4" />
+                  </div>
                   <div className="min-w-0">
-                    <h2 className="text-white font-medium text-lg tracking-wide truncate">
+                    <h2 className="truncate text-[16px] font-semibold text-white">
                       {formTitle || '0Fill Assistant'}
                     </h2>
-                    <p className="text-xs text-gray-400 font-medium">
+                    <p className="text-[12px] font-medium text-slate-400">
                       {chatState === 'COMPLETED' ? (
-                        <span className="text-emerald-400">Completed</span>
+                        <span className="text-emerald-300">Completed</span>
                       ) : chatState === 'ERROR' ? (
                         <span className="text-red-400">Submission failed</span>
                       ) : progressDetail ? (
-                        <span>Question {progressDetail.currentFieldIndex + 1} of {progressDetail.totalFields} &middot; {progressDetail.percentage}%</span>
+                        <span>
+                          Question {Math.min(progressDetail.currentFieldIndex + 1, progressDetail.totalFields)} of{' '}
+                          {progressDetail.totalFields} - {progressDetail.percentage}%
+                        </span>
                       ) : (
                         <span>Session active</span>
                       )}
@@ -252,30 +385,29 @@ function StartFreeContent() {
                 </div>
                 <button
                   onClick={handleRestart}
-                  className="text-xs text-gray-300 hover:text-white transition-all px-4 py-2 border border-white/10 rounded-lg bg-[#252530]/50 hover:bg-[#252530] flex items-center gap-2 shrink-0"
+                  className="flex shrink-0 items-center gap-2 rounded-[6px] border border-white/10 bg-white/5 px-3.5 py-2 text-xs text-slate-300 transition hover:bg-white/10 hover:text-white"
                 >
-                  <RotateCcw className="w-3 h-3" />
+                  <RotateCcw className="h-3 w-3" />
                   Restart
                 </button>
               </div>
 
-              {/* Progress panel — always show when session is active */}
               {progressDetail && chatState !== 'COMPLETED' && (
                 <ChatProgress progressDetail={progressDetail} chatState={chatState} />
               )}
               {!progressDetail && chatState !== 'COMPLETED' && chatState !== 'IDLE' && totalFields > 0 && (
-                <div className="px-4 py-2 border-b border-gray-800/60 bg-[#0B0B0F]/80">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-gray-400">
+                <div className="border-b border-white/10 bg-slate-950 px-4 py-2">
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="text-xs text-slate-400">
                       Question {Math.min(answeredCount + 1, totalFields)} of {totalFields}
                     </span>
-                    <span className="text-[10px] text-gray-600 tabular-nums">
+                    <span className="text-[10px] tabular-nums text-slate-500">
                       {totalFields > 0 ? Math.round((answeredCount / totalFields) * 100) : 0}%
                     </span>
                   </div>
-                  <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-1 overflow-hidden rounded-full bg-white/10">
                     <div
-                      className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-700 ease-out"
+                      className="h-full rounded-full bg-emerald-400 transition-all duration-700 ease-out"
                       style={{ width: `${totalFields > 0 ? Math.round((answeredCount / totalFields) * 100) : 0}%` }}
                     />
                   </div>
@@ -283,18 +415,20 @@ function StartFreeContent() {
               )}
             </div>
 
-            {/* Chat History */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 scroll-smooth scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            <div className="flex-1 space-y-6 overflow-y-auto p-4 scroll-smooth md:p-8">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                  className={`flex animate-in fade-in slide-in-from-bottom-2 duration-300 ${
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
                 >
                   <div
-                    className={`max-w-[85%] md:max-w-[75%] p-5 shadow-sm text-sm md:text-base ${msg.role === 'user'
-                      ? 'bg-gradient-to-br from-brand-purple to-[#0da372] text-white rounded-2xl rounded-tr-sm'
-                      : 'bg-[#1C1C24] text-gray-100 border border-white/5 rounded-2xl rounded-tl-sm shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)]'
-                      }`}
+                    className={`max-w-[85%] rounded-[8px] p-4 text-sm shadow-sm md:max-w-[75%] md:text-[15px] ${
+                      msg.role === 'user'
+                        ? 'bg-emerald-300 text-slate-950'
+                        : 'border border-white/10 bg-white/[0.07] text-slate-100'
+                    }`}
                   >
                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                   </div>
@@ -303,60 +437,48 @@ function StartFreeContent() {
 
               {sendingMsg && (
                 <div className="flex justify-start animate-in fade-in duration-300">
-                  <div className="bg-[#1C1C24] border border-white/5 py-4 px-5 rounded-2xl rounded-tl-sm flex gap-1.5 items-center shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)]">
-                    <span className="w-2 h-2 bg-brand-purple/70 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-brand-purple/70 rounded-full animate-bounce [animation-delay:0.15s]"></span>
-                    <span className="w-2 h-2 bg-brand-purple/70 rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                  <div className="flex items-center gap-1.5 rounded-[8px] border border-white/10 bg-white/[0.07] px-5 py-4">
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-300" />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-300 [animation-delay:0.15s]" />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-emerald-300 [animation-delay:0.3s]" />
                   </div>
                 </div>
               )}
 
               {error && (
-                <div className="text-center w-full animate-in fade-in duration-300">
-                  <span className="inline-block text-red-400 bg-red-400/10 border border-red-500/20 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm">
+                <div className="w-full text-center animate-in fade-in duration-300">
+                  <span className="inline-block rounded-[8px] border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-300">
                     {error}
                   </span>
                 </div>
               )}
 
               {isComplete && (
-                <div className="mt-8 p-8 bg-gradient-to-br from-brand-purple/10 to-[#1C1C24]/50 border border-brand-purple/20 rounded-2xl text-center shadow-[0_0_40px_-10px_rgba(16,185,129,0.15)] animate-in fade-in slide-in-from-bottom-4 duration-500 relative overflow-hidden">
-                  
-                  {/* Decorative background glow */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-[200px] bg-brand-purple/20 blur-[100px] rounded-full pointer-events-none" />
-
-                  <div className="w-16 h-16 bg-brand-purple/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-brand-purple/30 relative z-10">
-                    <svg className="w-8 h-8 text-brand-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                <div className="mt-8 rounded-[8px] border border-emerald-400/20 bg-emerald-400/10 p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 md:p-8">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-[8px] bg-emerald-300 text-slate-950">
+                    <Save className="h-6 w-6" />
                   </div>
-                  <h3 className="text-white font-semibold text-2xl mb-2 tracking-tight relative z-10">Magic Complete! ✨</h3>
-                  <p className="text-gray-400 mb-8 max-w-md mx-auto relative z-10">
-                    You just experienced how much better a conversational form feels. Imagine if your clients saw this instead of a static page.
+                  <h3 className="mb-2 text-2xl font-semibold text-white">Preview complete</h3>
+                  <p className="mx-auto mb-7 max-w-md text-sm leading-6 text-slate-300">
+                    Save this form to publish the chat, embed it on your site, and enable recovery for abandoned responses.
                   </p>
 
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-                    <Link 
-                      href={`/sign-up?url=${encodeURIComponent(searchParams.get('url') || '')}`}
-                      className="w-full sm:w-auto px-8 py-3.5 bg-brand-purple hover:bg-[#0da372] text-white font-semibold rounded-xl transition-all shadow-lg shadow-brand-purple/25 hover:shadow-brand-purple/40 flex items-center justify-center gap-2 group"
-                    >
-                      <Save className="w-4 h-4" />
-                      Save & Publish this Form
-                      <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </div>
+                  <Link
+                    href={`/sign-up?url=${encodeURIComponent(searchParams.get('url') || '')}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-[6px] bg-white px-5 py-3 text-sm font-medium text-slate-950 transition hover:bg-slate-100"
+                  >
+                    Save and publish this form
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
 
                   {collectedData && (
-                    <div className="bg-black/50 border border-white/5 rounded-xl overflow-hidden mt-8 relative z-10">
-                      <div className="bg-white/5 px-4 py-2 border-b border-white/5 flex items-center justify-between">
-                        <span className="text-xs font-mono text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                           <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                           Captured Data Payload
-                        </span>
-                      </div>
-                      <div className="p-4 text-left overflow-x-auto text-sm text-gray-300 font-mono">
-                        <pre>{JSON.stringify(collectedData, null, 2)}</pre>
-                      </div>
+                    <div className="mt-7 grid gap-2 text-left sm:grid-cols-2">
+                      {Object.entries(collectedData).map(([key, value]) => (
+                        <div key={key} className="rounded-[8px] border border-white/10 bg-slate-950/55 p-3">
+                          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">{key}</p>
+                          <p className="mt-1 text-sm leading-6 text-slate-200">{value}</p>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -364,31 +486,64 @@ function StartFreeContent() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <div className={`p-4 md:p-6 bg-[#0B0B0F]/90 border-t border-white/10 transition-opacity z-10 relative ${isComplete ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-              <form onSubmit={handleSendMessage} className="relative flex items-center max-w-3xl mx-auto w-full group">
+            <div className={`relative z-10 border-t border-white/10 bg-[var(--m-ink)] p-4 transition-opacity md:p-6 ${isComplete ? 'pointer-events-none opacity-50' : 'opacity-100'}`}>
+              <form onSubmit={handleSendMessage} className="relative mx-auto flex w-full max-w-3xl items-center">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Type your answer here..."
                   disabled={sendingMsg || isComplete}
-                  className="w-full bg-[#1C1C24] text-white rounded-2xl pl-6 pr-16 py-4 md:py-5 shadow-inner focus:outline-none focus:ring-2 focus:ring-brand-purple/50 border border-white/5 focus:border-brand-purple/50 transition-all placeholder:text-gray-500 text-base"
+                  className="w-full rounded-[8px] border border-white/10 bg-white/[0.06] py-4 pl-5 pr-16 text-base text-white shadow-inner outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50 focus:ring-4 focus:ring-emerald-300/10 md:py-5"
                 />
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || sendingMsg || isComplete}
-                  className="absolute right-3 p-2.5 md:p-3 bg-gradient-to-br from-brand-purple to-[#0da372] text-white rounded-xl hover:shadow-[0_0_15px_theme(colors.brand.purple/40)] transition-all disabled:opacity-50 disabled:hover:shadow-none disabled:active:scale-100 active:scale-95 flex items-center justify-center"
+                  className="absolute right-3 flex items-center justify-center rounded-[6px] bg-emerald-300 p-2.5 text-slate-950 transition hover:bg-emerald-200 disabled:opacity-50 md:p-3"
                 >
-                  <Send className="w-5 h-5 ml-0.5" />
+                  <Send className="ml-0.5 h-5 w-5" />
                 </button>
               </form>
             </div>
-
           </div>
-        )}
-      </div>
-    </div>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 space-y-3">
+              <div className={`rounded-[8px] border border-[var(--m-border)] bg-[var(--m-card)] p-5 ${cardShadow}`}>
+                <Eyebrow>Session state</Eyebrow>
+                <div className="mt-5 space-y-3">
+                  {[
+                    { icon: MessageSquare, label: 'Conversation', value: chatState === 'COMPLETED' ? 'complete' : 'active' },
+                    { icon: Clock, label: 'Progress', value: progressDetail ? `${progressDetail.percentage}%` : 'starting' },
+                    { icon: Webhook, label: 'Routing', value: isComplete ? 'ready to save' : 'waiting' },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center gap-3 rounded-[8px] border border-[var(--m-border)] bg-[var(--m-surface-2)] p-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-[7px] bg-emerald-50 text-[var(--m-primary)]">
+                        <item.icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-[12px] font-medium text-slate-500">{item.label}</p>
+                        <p className="text-[14px] font-semibold text-[var(--m-fg)]">{item.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[8px] border border-emerald-200 bg-emerald-50 p-5">
+                <div className="flex items-center gap-2 text-[13px] font-semibold text-emerald-900">
+                  <Check className="h-4 w-4" />
+                  Product preview
+                </div>
+                <p className="mt-2 text-[13px] leading-6 text-emerald-950/75">
+                  This is the same respondent experience you can publish after saving the imported form.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </section>
+      )}
+    </main>
   );
 }
 
@@ -396,13 +551,12 @@ export default function StartFreePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#0B0B0F] flex items-center justify-center">
-          <Background />
-          <div className="text-center relative z-10">
-            <Loader2 className="w-8 h-8 animate-spin text-brand-purple mx-auto mb-4" />
-            <p className="text-gray-400">Loading...</p>
+        <main style={marketingVars} className="flex min-h-[calc(100vh-5rem)] items-center justify-center bg-[var(--m-bg)]">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-[var(--m-primary)]" />
+            <p className="text-slate-600">Loading...</p>
           </div>
-        </div>
+        </main>
       }
     >
       <StartFreeContent />

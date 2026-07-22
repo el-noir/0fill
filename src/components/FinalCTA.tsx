@@ -1,46 +1,48 @@
-import { motion } from 'motion/react';
-import { MagneticButton } from './ui/MagneticButton';
-import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Mail, Webhook } from 'lucide-react';
 
 export function FinalCTA() {
   return (
-    <section id="waitlist" className="py-32 relative bg-brand-dark overflow-hidden" aria-labelledby="cta-title">
-      {/* Background Effects */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-purple/20 blur-[120px] rounded-full pointer-events-none" />
-      </div>
+    <section id="waitlist" className="bg-[#f7f8f5] px-6 py-24" aria-labelledby="cta-title">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-xl bg-slate-950 p-8 text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)] md:p-12">
+        <div className="mb-8 flex flex-wrap gap-3">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-emerald-300">
+            <Mail className="h-3.5 w-3.5" />
+            Gmail recovery
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300">
+            <Webhook className="h-3.5 w-3.5" />
+            Signed webhooks
+          </span>
+        </div>
 
-      <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight text-white mb-8 leading-tight"
-        >
-          Forms were built for fields.<br />
-          <span className="text-gray-500">We built them for conversations.</span>
-        </motion.h2>
+        <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <h2 id="cta-title" className="max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">
+              Paste a form URL. See what 0Fill can recover.
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">
+              Start with an existing form, preview the conversation, then publish it
+              when your recovery and webhook workflow is ready.
+            </p>
+          </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="flex flex-col sm:flex-row justify-center items-center gap-4"
-        >
-          <MagneticButton className="w-full sm:w-auto px-10 py-4 bg-brand-purple hover:bg-[#0da372] text-white font-semibold rounded-full text-lg transition-all focus:outline-none focus:ring-4 focus:ring-brand-purple/30 shadow-[0_0_20px_theme(colors.brand.purple/30)]">
-            <a href="/start-free" className="flex items-center justify-center gap-2">
-              Get Started Free <ArrowRight className="w-5 h-5" />
-            </a>
-          </MagneticButton>
-          <MagneticButton className="w-full sm:w-auto px-10 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-full border border-white/10 text-lg transition-all focus:outline-none focus:ring-4 focus:ring-white/10">
-            <a href="/contact" className="flex items-center justify-center gap-2">
-              Contact Sales
-            </a>
-          </MagneticButton>
-        </motion.div>
+          <div className="flex flex-col gap-3 sm:flex-row md:flex-col">
+            <Link
+              href="/start-free"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+            >
+              Start with a form
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="#recovery"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              View recovery flow
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   );

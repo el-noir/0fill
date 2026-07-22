@@ -1,22 +1,21 @@
-﻿'use client';
+'use client';
 
-import { motion, AnimatePresence } from 'motion/react';
-import { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, LogOut, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/stores/authStore';
 import { useOrgStore } from '@/stores/orgStore';
 import { logoutUser } from '@/lib/api/auth';
 
-const navItems = [
-  { name: 'Features', href: '#features' },
-  { name: 'How It Works', href: '#how-it-works' },
-  { name: 'Testimonials', href: '#testimonials' },
+const publicNavItems = [
+  { name: 'Product', href: '#features' },
+  { name: 'Workflow', href: '#how-it-works' },
+  { name: 'Recovery', href: '#recovery' },
   { name: 'Integrations', href: '#integrations' },
-  { name: 'Case Studies', href: '/case-studies' },
 ];
 
 export function Navbar() {
@@ -30,23 +29,29 @@ export function Navbar() {
 
   const authNavItems = [
     { name: 'Dashboard', href: `/dashboard/${currentOrgId || ''}` },
-    { name: 'My Forms', href: `/dashboard/${currentOrgId || ''}/forms` },
+    { name: 'Forms', href: `/dashboard/${currentOrgId || ''}/forms` },
     { name: 'Integrations', href: `/dashboard/${currentOrgId || ''}/integrations` },
   ];
 
+  const items = isAuthenticated && !isLoading ? authNavItems : publicNavItems;
+
   const handleLogout = async () => {
     setDropdownOpen(false);
-    try { await logoutUser(); } catch { /* clearAuth runs in finally */ }
+    try {
+      await logoutUser();
+    } catch {
+      /* auth state clears in the API layer */
+    }
     window.location.href = '/';
   };
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
+    const onScroll = () => setScrolled(window.scrollY > 18);
+    onScroll();
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -57,183 +62,132 @@ export function Navbar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const items = isAuthenticated && !isLoading ? authNavItems : navItems;
-
   return (
-    <div className="fixed top-4 sm:top-6 left-0 w-full z-50 flex justify-center px-4 pointer-events-none">
-      <div className="pointer-events-auto relative w-full max-w-5xl" ref={dropdownRef}>
-        {/* ─── Pill ───────────────────────────────────────────────── */}
-        <motion.nav
-          className={`rounded-full transition-all duration-300 ${scrolled
-            ? 'bg-[#0B0B0F]/90 backdrop-blur-md border border-gray-800 shadow-xl'
-            : 'bg-[#111116]/95 border border-gray-800/80 shadow-lg md:bg-transparent md:border-transparent md:shadow-none'
-            }`}
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
+    <div className="fixed left-0 top-0 z-50 w-full px-4 py-4">
+      <div className="mx-auto max-w-7xl" ref={dropdownRef}>
+        <nav
+          className={`flex h-14 items-center justify-between rounded-xl border px-4 transition-all ${
+            scrolled
+              ? 'border-slate-200 bg-white/90 shadow-lg shadow-slate-950/5 backdrop-blur-xl'
+              : 'border-white/70 bg-white/75 shadow-sm backdrop-blur-xl'
+          }`}
           role="navigation"
           aria-label="Main navigation"
         >
-          <div className="px-4 sm:px-5 md:px-8 h-14 flex items-center justify-between gap-3 md:gap-12">
+          <Link href="/" className="flex items-center gap-2 rounded-lg focus:outline-none focus:ring-4 focus:ring-emerald-100">
+            <span className="relative h-8 w-8 overflow-hidden rounded-lg">
+              <Image src="/logo.png" alt="0Fill Logo" fill className="object-cover" />
+            </span>
+            <span className="text-base font-semibold tracking-tight text-slate-950">0Fill</span>
+          </Link>
 
-            <Link
-              href="/"
-              className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-brand-purple rounded-xl shrink-0 transition-all duration-300"
-            >
-              <div className="relative w-8 h-8 rounded-[8px] overflow-hidden transition-all duration-300 shrink-0 flex items-center justify-center group-hover:scale-110 drop-shadow-[0_0_8px_rgba(16,185,129,0.4)] group-hover:drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]">
-                <Image
-                  src="/logo.png"
-                  alt="0Fill Logo"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <span className="text-base font-bold text-white tracking-tight group-hover:text-gray-200 transition-colors duration-300 md:hidden">
-                0Fill
-              </span>
-            </Link>
-
-            {/* Desktop nav links */}
-            <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
-              {items.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`text-sm font-medium transition-colors relative group ${isActive ? 'text-white' : 'text-gray-400 hover:text-white'
-                      }`}
-                  >
-                    {item.name}
-                    <span className={`absolute -bottom-1 left-0 h-[2px] bg-brand-purple transition-all ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`} />
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Desktop CTAs */}
-            <div className="hidden md:flex items-center gap-3 shrink-0">
-              {isAuthenticated && !isLoading ? (
-                <>
-                  <span className="text-white text-sm font-medium bg-white/10 px-3 py-1.5 rounded-lg">
-                    {user?.firstName}
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-purple text-white font-semibold text-sm hover:bg-[#0da372] transition-colors"
-                  >
-                    <LogOut className="w-3.5 h-3.5" /> Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/sign-in" className="text-sm font-medium text-white hover:text-gray-300 transition-colors px-2 py-1 rounded">
-                    Sign In
-                  </Link>
-                  <Link href="/sign-up" className="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-                    Start Free
-                  </Link>
-                </>
-              )}
-            </div>
-
-            {/* Mobile right side: CTA + hamburger */}
-            <div className="md:hidden flex items-center gap-2 shrink-0">
-              {!isAuthenticated && !isLoading && (
+          <div className="hidden items-center gap-7 md:flex">
+            {items.map((item) => {
+              const isActive = pathname === item.href;
+              return (
                 <Link
-                  href="/sign-up"
-                  onClick={() => setDropdownOpen(false)}
-                  className="px-3.5 py-1.5 rounded-full bg-brand-purple text-white font-semibold text-xs hover:bg-[#0da372] transition-colors"
+                  key={item.name}
+                  href={item.href}
+                  className={`text-sm font-medium transition-colors ${
+                    isActive ? 'text-slate-950' : 'text-slate-600 hover:text-slate-950'
+                  }`}
                 >
-                  Start Free
+                  {item.name}
                 </Link>
-              )}
-              {isAuthenticated && !isLoading && (
-                <Link
-                  href={`/dashboard/${currentOrgId || ''}`}
-                  className="px-3 py-1.5 rounded-full bg-brand-purple/20 text-brand-purple font-semibold text-xs border border-brand-purple/30 hover:bg-brand-purple/30 transition-colors"
-                >
-                  Dashboard
-                </Link>
-              )}
-              <button
-                onClick={() => setDropdownOpen((v) => !v)}
-                className={`p-2 rounded-full border transition-colors ${dropdownOpen ? 'bg-white/10 border-gray-600 text-white' : 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-600'}`}
-                aria-label="Open menu"
-                aria-expanded={dropdownOpen}
-              >
-                <Menu className="w-4 h-4" />
-              </button>
-            </div>
+              );
+            })}
           </div>
-        </motion.nav>
 
+          <div className="hidden items-center gap-3 md:flex">
+            {isAuthenticated && !isLoading ? (
+              <>
+                <span className="max-w-[140px] truncate text-sm font-medium text-slate-600">
+                  {user?.firstName}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/sign-in" className="px-2 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-950">
+                  Sign in
+                </Link>
+                <Link href="/start-free" className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                  Start free
+                </Link>
+              </>
+            )}
+          </div>
 
-        {/* ─── Dropdown below the pill (mobile only) ──────────────── */}
+          <button
+            onClick={() => setDropdownOpen((value) => !value)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:text-slate-950 md:hidden"
+            aria-label="Open menu"
+            aria-expanded={dropdownOpen}
+          >
+            {dropdownOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
+        </nav>
+
         <AnimatePresence>
           {dropdownOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="md:hidden absolute top-full left-0 right-0 mt-2 bg-[#111116] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl"
+              className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-950/10 md:hidden"
             >
-              {/* Nav links */}
-              <div className="p-2">
-                {items.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setDropdownOpen(false)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-colors ${isActive
-                        ? 'bg-brand-purple/10 text-white font-medium'
-                        : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
-                        }`}
-                    >
-                      {item.name}
-                      {isActive && <span className="w-1.5 h-1.5 rounded-full bg-brand-purple" />}
-                    </Link>
-                  );
-                })}
-              </div>
+              {items.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setDropdownOpen(false)}
+                  className="block rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                >
+                  {item.name}
+                </Link>
+              ))}
 
-              {/* Auth section */}
-              <div className="border-t border-gray-800/80 p-3 space-y-2">
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
                 {isAuthenticated && !isLoading ? (
                   <>
-                    <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5">
-                      <div className="w-7 h-7 rounded-full bg-brand-purple/20 flex items-center justify-center text-xs font-semibold text-brand-purple">
-                        {user?.firstName?.charAt(0)}
-                      </div>
-                      <span className="text-white text-sm font-medium">{user?.firstName} {user?.lastName}</span>
-                    </div>
+                    <Link
+                      href={`/dashboard/${currentOrgId || ''}`}
+                      onClick={() => setDropdownOpen(false)}
+                      className="rounded-lg bg-slate-950 px-3 py-2.5 text-center text-sm font-semibold text-white"
+                    >
+                      Dashboard
+                    </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors"
+                      className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700"
                     >
-                      <LogOut className="w-3.5 h-3.5" /> Logout
+                      Logout
                     </button>
                   </>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <>
                     <Link
                       href="/sign-in"
                       onClick={() => setDropdownOpen(false)}
-                      className="text-center py-2.5 rounded-xl border border-gray-800 text-sm font-medium text-gray-300 hover:text-white hover:border-gray-700 transition-colors"
+                      className="rounded-lg border border-slate-200 px-3 py-2.5 text-center text-sm font-semibold text-slate-700"
                     >
-                      Sign In
+                      Sign in
                     </Link>
                     <Link
-                      href="/sign-up"
+                      href="/start-free"
                       onClick={() => setDropdownOpen(false)}
-                      className="text-center py-2.5 rounded-xl bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-colors"
+                      className="rounded-lg bg-slate-950 px-3 py-2.5 text-center text-sm font-semibold text-white"
                     >
-                      Start Free
+                      Start free
                     </Link>
-                  </div>
+                  </>
                 )}
               </div>
             </motion.div>

@@ -16,11 +16,11 @@ export default function AppLayout({
   }
 
   return (
-    <>
+    <div className="min-h-screen overflow-x-hidden bg-[#f7f8f5] text-slate-950">
       <Navbar />
       <div className="pt-20">
         {children}
       </div>
-    </>
+    </div>
   );
 }

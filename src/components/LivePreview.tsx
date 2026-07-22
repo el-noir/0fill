@@ -1,103 +1,132 @@
-﻿import { motion } from 'motion/react';
-import { User, Sparkles, ArrowDown } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+'use client';
 
-const example = {
-  input: "I make about 5 to 7 thousand dollars a month usually",
-  output: "$5,000 - $7,000",
-};
+import { useEffect, useState } from 'react';
+import { CheckCircle2, Mail, MessageSquare, Webhook } from 'lucide-react';
+
+const typedInput = 'We need onboarding for 40 sales reps next month.';
 
 export function LivePreview() {
-  const [typedText, setTypedText] = useState("");
-  const [showOutput, setShowOutput] = useState(false);
+  const [typedText, setTypedText] = useState('');
+  const [stage, setStage] = useState(0);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
-    let timeoutId: NodeJS.Timeout;
+    const timeouts: NodeJS.Timeout[] = [];
 
     const animate = () => {
-      setTypedText("");
-      setShowOutput(false);
-      let i = 0;
+      setTypedText('');
+      setStage(0);
+      let index = 0;
 
       intervalId = setInterval(() => {
-        setTypedText(example.input.slice(0, i + 1));
-        i++;
-        if (i > example.input.length) {
+        setTypedText(typedInput.slice(0, index + 1));
+        index += 1;
+
+        if (index > typedInput.length) {
           clearInterval(intervalId);
-          setShowOutput(true);
-          timeoutId = setTimeout(animate, 4000);
+          timeouts.push(setTimeout(() => setStage(1), 500));
+          timeouts.push(setTimeout(() => setStage(2), 1200));
+          timeouts.push(setTimeout(() => setStage(3), 1900));
+          timeouts.push(setTimeout(animate, 5400));
         }
-      }, 50);
+      }, 34);
     };
 
     animate();
 
     return () => {
       clearInterval(intervalId);
-      clearTimeout(timeoutId);
+      timeouts.forEach(clearTimeout);
     };
   }, []);
 
   return (
-    <section className="py-20 relative overflow-hidden">
-      <div className="max-w-4xl mx-auto px-6 text-center mb-16">
-        <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Intelligent Extraction</h2>
-        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-          Our AI understands context, nuance, and messy inputs, converting them into clean, structured data for your backend.
-        </p>
-      </div>
+    <section id="recovery" className="bg-slate-950 py-24 text-white">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mb-12 grid gap-8 md:grid-cols-[0.8fr_1fr] md:items-end">
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-400">
+              Recovery flow
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight md:text-5xl">
+              The drop-off becomes an action, not a dead end.
+            </h2>
+          </div>
+          <p className="max-w-2xl text-base leading-7 text-slate-300">
+            When someone leaves mid-conversation, 0Fill keeps their answers,
+            queues a recovery email, and sends the event to the tools your team already uses.
+          </p>
+        </div>
 
-      <div className="max-w-2xl mx-auto px-6 relative">
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="bg-[#0B0B0F] border border-gray-800 rounded-xl p-8 shadow-sm relative overflow-hidden group hover:border-gray-600 transition-colors duration-300"
-        >
-
-          <div className="space-y-6 relative z-10">
-            {/* User Input */}
-            <div className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-1">
-                <User className="w-5 h-5 text-gray-300" />
+        <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-slate-950">
+                <MessageSquare className="h-4 w-4" />
               </div>
-              <div className="space-y-1 flex-1">
-                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">User Input</div>
-                <div className="text-xl text-gray-200 font-medium leading-relaxed min-h-[60px]">
-                  &ldquo;{typedText}<span className="animate-pulse">|</span>&rdquo;
-                </div>
+              <div>
+                <p className="text-sm font-semibold">Public AI form</p>
+                <p className="text-xs text-slate-400">Lead qualification preview</p>
               </div>
             </div>
 
-            {/* Arrow */}
-            <div className="flex justify-center py-2">
-              <motion.div
-                animate={{ y: [0, 5, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="w-8 h-8 rounded-md bg-[#111116] border border-gray-800 flex items-center justify-center text-gray-500"
-              >
-                <ArrowDown className="w-4 h-4" />
-              </motion.div>
+            <div className="space-y-4">
+              <div className="max-w-[82%] rounded-xl rounded-tl-sm border border-white/10 bg-slate-900 p-4 text-sm text-slate-200">
+                What are you trying to solve?
+              </div>
+              <div className="ml-auto max-w-[86%] rounded-xl rounded-tr-sm bg-emerald-400 p-4 text-sm font-medium text-slate-950">
+                {typedText}
+                <span className="animate-pulse">|</span>
+              </div>
             </div>
 
-            {/* AI Output */}
-            <div className="flex gap-4 items-start">
-              <div className="relative w-10 h-10 rounded-md bg-brand-purple flex items-center justify-center shrink-0 mt-1 overflow-hidden">
-                <Image src="/logo.png" alt="0Fill AI" fill className="object-contain p-1.5" />
+            <div className="mt-7">
+              <div className="mb-2 flex justify-between text-xs text-slate-400">
+                <span>Conversation progress</span>
+                <span>64%</span>
               </div>
-              <div className="space-y-2 flex-1">
-                <div className="text-xs font-medium text-brand-purple uppercase tracking-wider">Structured Output</div>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={showOutput ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-                  className="inline-block px-4 py-2 rounded-md bg-[#111116] border border-gray-800 text-gray-300 font-mono text-sm"
-                >
-                  {example.output}
-                </motion.div>
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-emerald-400 transition-all duration-700"
+                  style={{ width: stage > 0 ? '64%' : '28%' }}
+                />
               </div>
             </div>
           </div>
-        </motion.div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Automatic recovery</p>
+                <p className="text-xs text-slate-400">Triggered after abandonment</p>
+              </div>
+              <span className="rounded-md bg-emerald-400/10 px-2 py-1 text-[11px] font-bold uppercase text-emerald-300">
+                Live
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {[
+                { icon: CheckCircle2, label: 'Partial response saved', active: stage >= 1 },
+                { icon: Mail, label: 'Gmail follow-up queued', active: stage >= 2 },
+                { icon: Webhook, label: 'Webhook event delivered', active: stage >= 3 },
+              ].map(({ icon: Icon, label, active }) => (
+                <div key={label} className="flex items-center gap-3 rounded-lg border border-white/10 bg-slate-900 p-3">
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-md ${
+                      active ? 'bg-emerald-400 text-slate-950' : 'bg-white/5 text-slate-500'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <span className={active ? 'text-sm font-medium text-white' : 'text-sm text-slate-500'}>
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

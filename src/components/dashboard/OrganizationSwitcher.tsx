@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { useOrgStore } from "@/stores/orgStore";
+import { useOrgStore, type OrgSummary } from "@/stores/orgStore";
 import { getMyOrganizations } from "@/lib/api/organizations";
 import {
     DropdownMenu,
@@ -15,6 +15,17 @@ import {
 import { Building2, ChevronDown, Plus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+type ApiOrganization = {
+    _id?: string;
+    id?: string;
+    name?: string;
+    plan?: string;
+    myRole?: OrgSummary["myRole"];
+    memberCount?: number;
+    formCount?: number;
+    limits?: Partial<OrgSummary["limits"]>;
+};
 
 export function OrganizationSwitcher() {
     const { accessToken } = useAuthStore();
@@ -38,14 +49,17 @@ export function OrganizationSwitcher() {
                 const orgs = await getMyOrganizations();
 
                 // Map API response to OrgSummary interface if needed
-                const summaries = orgs.map((o: any) => ({
+                const summaries: OrgSummary[] = (orgs as ApiOrganization[]).map((o) => ({
                     id: String(o._id || o.id),
-                    name: o.name,
+                    name: o.name || "Untitled workspace",
                     plan: o.plan || 'free',
                     myRole: o.myRole || 'owner',
                     memberCount: o.memberCount || 1,
                     formCount: o.formCount || 0,
-                    limits: o.limits || { maxForms: 10, maxMembers: 5 },
+                    limits: {
+                        maxForms: o.limits?.maxForms ?? 10,
+                        maxMembers: o.limits?.maxMembers ?? 5,
+                    },
                 }));
 
                 setOrganizations(summaries);
@@ -92,8 +106,8 @@ export function OrganizationSwitcher() {
                 <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent className="w-[240px] bg-[#111116] border-gray-800 shadow-xl" align="start">
-                <DropdownMenuLabel className="text-xs text-gray-500 font-medium px-2 py-1.5 uppercase tracking-wider">
+            <DropdownMenuContent className="w-[240px] bg-[var(--dash-panel)] border-[var(--dash-border)] text-[var(--dash-text)] shadow-xl" align="start">
+                <DropdownMenuLabel className="text-xs text-[var(--dash-subtle)] font-medium px-2 py-1.5 uppercase tracking-wider">
                     Workspaces
                 </DropdownMenuLabel>
 
@@ -101,15 +115,15 @@ export function OrganizationSwitcher() {
                     <DropdownMenuItem
                         key={org.id}
                         className={`flex items-center gap-2 px-2 py-2 cursor-pointer rounded-md ${String(currentOrgId) === String(org.id)
-                            ? "bg-[#1C1C22] text-white"
-                            : "text-gray-300 focus:bg-white/[0.04] focus:text-white"
+                            ? "bg-[var(--dash-elevated)] text-[var(--dash-text)]"
+                            : "text-[var(--dash-muted)] focus:bg-[var(--dash-hover)] focus:text-[var(--dash-text)]"
                             }`}
                         onClick={() => {
                             setCurrentOrg(org.id);
                             router.push(`/dashboard/${org.id}`);
                         }}
                     >
-                        <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${String(currentOrgId) === String(org.id) ? "bg-brand-purple text-white" : "bg-[#1C1C22] border border-gray-800 text-gray-400"}`}>
+                        <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 ${String(currentOrgId) === String(org.id) ? "bg-brand-purple text-white" : "bg-[var(--dash-elevated)] border border-[var(--dash-border)] text-[var(--dash-muted)]"}`}>
                             {org.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex flex-col overflow-hidden">
@@ -121,14 +135,14 @@ export function OrganizationSwitcher() {
                     </DropdownMenuItem>
                 ))}
 
-                <DropdownMenuSeparator className="bg-gray-800 my-1" />
+                <DropdownMenuSeparator className="bg-[var(--dash-border)] my-1" />
 
                 <DropdownMenuItem asChild>
                     <Link
                         href="/dashboard/organizations/new"
-                        className="flex items-center gap-2 px-2 py-2 cursor-pointer text-gray-300 focus:bg-white/[0.04] focus:text-white rounded-md group"
+                        className="flex items-center gap-2 px-2 py-2 cursor-pointer text-[var(--dash-muted)] focus:bg-[var(--dash-hover)] focus:text-[var(--dash-text)] rounded-md group"
                     >
-                        <div className="w-6 h-6 rounded flex items-center justify-center shrink-0 bg-transparent border border-dashed border-gray-600 group-hover:border-gray-400 transition-colors">
+                        <div className="w-6 h-6 rounded flex items-center justify-center shrink-0 bg-transparent border border-dashed border-[var(--dash-strong-border)] transition-colors group-hover:border-brand-purple">
                             <Plus className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-sm font-medium">Create workspace</span>

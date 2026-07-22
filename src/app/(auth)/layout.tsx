@@ -5,7 +5,7 @@ export default function AuthLayout({children}: {
   children: React.ReactNode;
 }) {
     return (
-        <div className="relative min-h-screen bg-black">
+        <div className="relative min-h-screen bg-[#f7f8f5]">
             <Navbar />
             <div className="pt-20">
               {children}

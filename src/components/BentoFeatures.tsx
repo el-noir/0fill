@@ -1,122 +1,77 @@
-import { motion } from 'motion/react';
-import { Brain, Globe, BarChart3, ShieldCheck, UserCog, Share2 } from 'lucide-react';
-import { TiltCard } from './ui/TiltCard';
-import Image from 'next/image';
 import {
-  ContextAwareVisual,
-  AnalyticsVisual,
-  SecurityVisual,
-  GlobalVisual,
-  IntegrationVisual
-} from './ui/FeatureVisuals';
+  BarChart3,
+  Bot,
+  FileInput,
+  Mail,
+  MessageSquareMore,
+  ShieldCheck,
+  Webhook,
+} from 'lucide-react';
 
 const features = [
   {
-    icon: Brain,
-    title: 'Context Aware',
-    desc: 'Remembers previous answers to ask relevant follow-up questions.',
-    colSpan: 'md:col-span-2',
-    visual: ContextAwareVisual,
+    icon: MessageSquareMore,
+    title: 'Conversational form experience',
+    desc: 'Ask one question at a time, preserve context, and make longer forms feel lighter.',
   },
   {
-    icon: Globe,
-    title: 'Multi-Language',
-    desc: 'Speaks 90+ languages fluently.',
-    colSpan: 'md:col-span-1',
-    visual: GlobalVisual,
+    icon: FileInput,
+    title: 'Partial response capture',
+    desc: 'Store usable lead data before someone reaches the final submit button.',
+  },
+  {
+    icon: Mail,
+    title: 'Gmail recovery campaigns',
+    desc: 'Send follow-up emails with resume links from the connected organization mailbox.',
+  },
+  {
+    icon: Webhook,
+    title: 'Webhook delivery',
+    desc: 'Send signed events for completed, abandoned, recovered, and failed submissions.',
   },
   {
     icon: BarChart3,
-    title: 'Instant Analytics',
-    desc: 'Real-time dashboards and insights.',
-    colSpan: 'md:col-span-1',
-    visual: AnalyticsVisual,
+    title: 'Analytics and summaries',
+    desc: 'Review response trends, drop-off signals, and AI-generated submission summaries.',
   },
   {
     icon: ShieldCheck,
-    title: 'Enterprise Security',
-    desc: 'SOC2 compliant data protection.',
-    colSpan: 'md:col-span-2',
-    visual: SecurityVisual,
+    title: 'Delivery visibility',
+    desc: 'Track retry attempts, failures, skips, opt-outs, and campaign health.',
   },
   {
-    icon: Share2,
-    title: 'Export Anywhere',
-    desc: 'Sync to Notion, Airtable, or Excel.',
-    colSpan: 'md:col-span-2',
-    visual: IntegrationVisual,
-  },
-  {
-    icon: UserCog,
-    title: 'Custom Personality',
-    desc: 'Match your brand voice perfectly.',
-    colSpan: 'md:col-span-1',
-    visual: () => (
-      <div className="absolute inset-0 p-4 pt-12 overflow-hidden opacity-40 group-hover:opacity-100 transition-opacity duration-500">
-        <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-          <Image
-            src="/ai-builder-feature.png"
-            alt="AI Personality Builder"
-            fill
-            className="object-cover object-top scale-110 group-hover:scale-100 transition-transform duration-700"
-          />
-        </div>
-      </div>
-    )
+    icon: Bot,
+    title: 'Website embed',
+    desc: 'Install the chat widget on approved domains with a small script snippet.',
   },
 ];
 
 export function BentoFeatures() {
   return (
-    <section id="features" className="py-32 relative bg-brand-dark" aria-labelledby="features-title">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-20 flex flex-col items-center">
-          <h2 id="features-title" className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">Powerful Features</h2>
-          <p className="text-gray-400 text-lg max-w-2xl text-center">
-            Everything you need to build intelligent conversational forms.
+    <section id="features" className="bg-[#f7f8f5] py-24" aria-labelledby="features-title">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mb-12 max-w-3xl">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+            Product
+          </p>
+          <h2 id="features-title" className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
+            The form stack for capture, recovery, and routing.
+          </h2>
+          <p className="mt-4 text-base leading-7 text-slate-600">
+            0Fill is not just a prettier form. It gives teams a public chat experience
+            and the operational controls needed after someone abandons it.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[320px]">
-          {features.map((feature, index) => (
-            <TiltCard key={index} className={feature.colSpan}>
-              <motion.div
-                className="h-full relative group overflow-hidden rounded-3xl bg-brand-surface border border-white/10 hover:border-brand-purple/30 transition-colors flex flex-col"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                style={{ transformStyle: "preserve-3d" }}
-              >
-                {/* Visual Container */}
-                <div className="flex-1 relative overflow-hidden bg-gradient-to-b from-brand-card/50 to-transparent">
-                  {feature.visual && (() => {
-                    const Visual = feature.visual;
-                    return (
-                      <div className="absolute inset-0 w-full h-full" style={{ transform: "translateZ(20px)" }}>
-                        <Visual />
-                      </div>
-                    );
-                  })()}
-
-                  {/* Fallback/Overlay for hover effect */}
-                  <div
-                    className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 to-brand-purple/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                    style={{ transform: "translateZ(-10px)" }}
-                  />
-                </div>
-
-                {/* Content */}
-                <div className="relative z-20 p-8 pt-0 bg-gradient-to-t from-brand-surface via-brand-surface to-transparent" style={{ transform: "translateZ(30px)" }}>
-                  <div className="w-12 h-12 rounded-2xl bg-brand-card border border-white/10 flex items-center justify-center mb-4 shadow-lg">
-                    <feature.icon className="w-6 h-6 text-brand-purple" />
-                  </div>
-
-                  <h3 className="text-2xl font-semibold text-white mb-2 tracking-tight">{feature.title}</h3>
-                  <p className="text-gray-400 leading-relaxed font-medium">{feature.desc}</p>
-                </div>
-              </motion.div>
-            </TiltCard>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {features.map(({ icon: Icon, title, desc }) => (
+            <article key={title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                <Icon className="h-4 w-4" />
+              </div>
+              <h3 className="text-lg font-semibold tracking-tight text-slate-950">{title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{desc}</p>
+            </article>
           ))}
         </div>
       </div>

@@ -1,110 +1,58 @@
-﻿'use client';
+import { BriefcaseBusiness, Headphones, Megaphone, Users } from 'lucide-react';
 
-import Image from 'next/image';
-import { motion } from 'motion/react';
-import { CheckCircle2, Shield, Lock, Server } from 'lucide-react';
-
-const companies = [
-  { name: 'Stripe', logo: 'https://cdn.simpleicons.org/stripe/white' },
-  { name: 'Notion', logo: 'https://cdn.simpleicons.org/notion/white' },
-  { name: 'Vercel', logo: 'https://cdn.simpleicons.org/vercel/white' },
-  { name: 'Figma', logo: 'https://cdn.simpleicons.org/figma/white' },
-  { name: 'Shopify', logo: 'https://cdn.simpleicons.org/shopify/white' },
-  { name: 'HubSpot', logo: 'https://cdn.simpleicons.org/hubspot/white' },
+const segments = [
+  {
+    icon: Megaphone,
+    title: 'Lead generation agencies',
+    text: 'Recover paid traffic that starts a form but leaves before submitting.',
+  },
+  {
+    icon: BriefcaseBusiness,
+    title: 'SaaS sales teams',
+    text: 'Qualify demo requests with richer context before routing to sales ops.',
+  },
+  {
+    icon: Users,
+    title: 'Recruiting teams',
+    text: 'Make applications feel conversational while preserving structured answers.',
+  },
+  {
+    icon: Headphones,
+    title: 'Service businesses',
+    text: 'Collect quote, booking, and intake details without losing mid-form intent.',
+  },
 ];
 
 export function SocialProof() {
   return (
-    <section
-      className="py-16 bg-brand-dark border-y border-gray-800"
-      aria-label="Trusted by leading companies"
-    >
-      <div className="max-w-7xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-12"
-        >
-          <p className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-2">
-            Trusted by Industry Leaders
+    <section className="border-y border-slate-200 bg-white py-16" aria-label="Who ZeroFill helps">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+              Designed for high-intent forms
+            </p>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-950 md:text-4xl">
+              Useful when a dropped answer still matters.
+            </h2>
+          </div>
+          <p className="max-w-md text-sm leading-6 text-slate-600">
+            0Fill is strongest on forms tied to pipeline, hiring, service requests,
+            or any workflow where partial intent should not disappear.
           </p>
-          <h2 className="text-2xl md:text-3xl font-bold text-white">
-            Join 2,000+ companies using 0Fill
-          </h2>
-        </motion.div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 md:gap-12 items-center">
-          {companies.map((company, index) => (
-            <motion.div
-              key={company.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="flex items-center justify-center group"
-            >
-              <Image
-                src={company.logo}
-                alt={`${company.name} logo`}
-                width={120}
-                height={40}
-                unoptimized
-                className="h-8 md:h-10 w-auto opacity-40 group-hover:opacity-100 transition-opacity duration-300 filter grayscale group-hover:grayscale-0"
-              />
-            </motion.div>
-          ))}
         </div>
 
-        {/* Stats Row */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
-        >
-          <div>
-            <div className="text-3xl md:text-4xl font-bold text-white mb-2">2,000+</div>
-            <div className="text-sm text-gray-400">Active Users</div>
-          </div>
-          <div>
-            <div className="text-3xl md:text-4xl font-bold text-white mb-2">50K+</div>
-            <div className="text-sm text-gray-400">Forms Created</div>
-          </div>
-          <div>
-            <div className="text-3xl md:text-4xl font-bold text-white mb-2">1M+</div>
-            <div className="text-sm text-gray-400">Responses Collected</div>
-          </div>
-          <div>
-            <div className="text-3xl md:text-4xl font-bold text-white mb-2">35%</div>
-            <div className="text-sm text-gray-400">Avg. Conversion Increase</div>
-          </div>
-        </motion.div>
-
-        {/* Trust Badges */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 flex flex-wrap items-center justify-center gap-6"
-        >
-          {/* Trust Indicators */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-brand-surface border border-gray-800">
-            <Shield className="w-4 h-4 text-brand-purple" />
-            <span className="text-sm text-gray-300 font-medium">SOC2 Compliant</span>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-brand-surface border border-gray-800">
-            <Lock className="w-4 h-4 text-brand-purple" />
-            <span className="text-sm text-gray-300 font-medium">End-to-End Encryption</span>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-brand-surface border border-gray-800">
-            <Server className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-300 font-medium">99.9% Uptime</span>
-          </div>
-        </motion.div>
+        <div className="grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 md:grid-cols-2 xl:grid-cols-4">
+          {segments.map(({ icon: Icon, title, text }) => (
+            <article key={title} className="bg-white p-5">
+              <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-lg bg-slate-950 text-white">
+                <Icon className="h-4 w-4" />
+              </div>
+              <h3 className="text-base font-semibold text-slate-950">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

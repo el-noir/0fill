@@ -1,62 +1,58 @@
-import Image from "next/image";
+import Image from 'next/image';
+import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="bg-brand-dark border-t border-gray-800 py-16 text-gray-400" aria-label="Footer">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div className="col-span-1 md:col-span-1">
-          <a href="/" className="inline-flex items-center gap-2 mb-6 group focus:outline-none focus:ring-2 focus:ring-brand-purple rounded-lg">
-            <div className="relative w-7 h-7 rounded-md overflow-hidden group-hover:scale-110 transition-transform shrink-0">
-              <Image
-                src="/logo.png"
-                alt="0Fill Logo"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span className="text-white font-semibold">0Fill</span>
-          </a>
-          <p>
-            Transforming data collection with intelligent conversations.
+    <footer className="border-t border-slate-200 bg-white py-14 text-slate-500" aria-label="Footer">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
+        <div>
+          <Link href="/" className="mb-5 inline-flex items-center gap-2 rounded-lg focus:outline-none focus:ring-4 focus:ring-emerald-100">
+            <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-md">
+              <Image src="/logo.png" alt="0Fill Logo" fill className="object-contain" />
+            </span>
+            <span className="font-semibold text-slate-950">0Fill</span>
+          </Link>
+          <p className="max-w-sm text-sm leading-6">
+            AI conversational forms with partial response capture, recovery follow-up,
+            and webhook delivery for teams that cannot afford lost intent.
           </p>
         </div>
 
         <div>
-          <h4 className="text-white font-medium mb-4">Product</h4>
-          <ul className="space-y-2">
-            <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Enterprise</a></li>
+          <h4 className="mb-4 text-sm font-semibold text-slate-950">Product</h4>
+          <ul className="space-y-2 text-sm">
+            <li><Link href="/#features" className="transition hover:text-slate-950">Features</Link></li>
+            <li><Link href="/#recovery" className="transition hover:text-slate-950">Recovery</Link></li>
+            <li><Link href="/#integrations" className="transition hover:text-slate-950">Integrations</Link></li>
+            <li><Link href="/start-free" className="transition hover:text-slate-950">Start free</Link></li>
           </ul>
         </div>
 
         <div>
-          <h4 className="text-white font-medium mb-4">Company</h4>
-          <ul className="space-y-2">
-            <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+          <h4 className="mb-4 text-sm font-semibold text-slate-950">Use Cases</h4>
+          <ul className="space-y-2 text-sm">
+            <li><Link href="/case-studies" className="transition hover:text-slate-950">Lead generation</Link></li>
+            <li><Link href="/case-studies" className="transition hover:text-slate-950">SaaS demos</Link></li>
+            <li><Link href="/case-studies" className="transition hover:text-slate-950">Recruiting</Link></li>
           </ul>
         </div>
 
         <div>
-          <h4 className="text-white font-medium mb-4">Legal</h4>
-          <ul className="space-y-2">
-            <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
+          <h4 className="mb-4 text-sm font-semibold text-slate-950">Trust</h4>
+          <ul className="space-y-2 text-sm">
+            <li>OAuth Gmail sending</li>
+            <li>Signed webhook payloads</li>
+            <li>Recovery opt-out controls</li>
+            <li>Delivery logs</li>
           </ul>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p>© 2026 0Fill Inc. All rights reserved.</p>
-        <div className="flex gap-6">
-          <a href="#" className="hover:text-white transition-colors">Twitter</a>
-          <a href="#" className="hover:text-white transition-colors">GitHub</a>
-          <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
+      <div className="mx-auto mt-12 flex max-w-7xl flex-col justify-between gap-4 border-t border-slate-200 px-6 pt-6 text-sm md:flex-row md:items-center">
+        <p>Copyright 2026 0Fill. All rights reserved.</p>
+        <div className="flex gap-5">
+          <Link href="/sign-in" className="transition hover:text-slate-950">Sign in</Link>
+          <Link href="/sign-up" className="transition hover:text-slate-950">Create account</Link>
         </div>
       </div>
     </footer>

@@ -63,6 +63,16 @@
 
 :root {
   --radius: 0.625rem;
+  --dash-bg: #f5f7f3;
+  --dash-card: #ffffff;
+  --dash-panel: #f8fafc;
+  --dash-elevated: #ffffff;
+  --dash-hover: #eef3f7;
+  --dash-border: #d6dee8;
+  --dash-strong-border: #aebbc9;
+  --dash-text: #0b1220;
+  --dash-muted: #475569;
+  --dash-subtle: #6b7c91;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -97,6 +107,16 @@
 }
 
 .dark {
+  --dash-bg: #08090d;
+  --dash-card: #0b0d12;
+  --dash-panel: #12151c;
+  --dash-elevated: #1a1f2a;
+  --dash-hover: rgba(255, 255, 255, 0.065);
+  --dash-border: rgba(71, 85, 105, 0.52);
+  --dash-strong-border: #536172;
+  --dash-text: #f8fafc;
+  --dash-muted: #cbd5e1;
+  --dash-subtle: #94a3b8;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -137,6 +157,156 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .dashboard-theme {
+    --dash-bg: #08090d;
+    --dash-card: #0b0d12;
+    --dash-panel: #12151c;
+    --dash-elevated: #1a1f2a;
+    --dash-hover: rgba(255, 255, 255, 0.065);
+    --dash-border: rgba(71, 85, 105, 0.52);
+    --dash-strong-border: #536172;
+    --dash-text: #f8fafc;
+    --dash-muted: #cbd5e1;
+    --dash-subtle: #94a3b8;
+    background-color: var(--dash-bg);
+    color: var(--dash-text);
+    color-scheme: dark;
+  }
+
+  .light .dashboard-theme {
+    --dash-bg: #f5f7f3;
+    --dash-card: #ffffff;
+    --dash-panel: #f8fafc;
+    --dash-elevated: #ffffff;
+    --dash-hover: #eef3f7;
+    --dash-border: #d6dee8;
+    --dash-strong-border: #aebbc9;
+    --dash-text: #0b1220;
+    --dash-muted: #475569;
+    --dash-subtle: #6b7c91;
+    color-scheme: light;
+  }
+
+  .light .dashboard-theme .bg-\[\#0B0B0F\],
+  .light .dashboard-theme .bg-\[\#0f0f14\],
+  .light .dashboard-theme .bg-brand-dark {
+    background-color: var(--dash-card) !important;
+  }
+
+  .light .dashboard-theme .bg-\[\#111116\],
+  .light .dashboard-theme .bg-\[\#111116\]\/30,
+  .light .dashboard-theme .bg-\[\#111116\]\/50,
+  .light .dashboard-theme .bg-brand-surface {
+    background-color: var(--dash-panel) !important;
+  }
+
+  .light .dashboard-theme .bg-\[\#1C1C22\],
+  .light .dashboard-theme .bg-\[\#1C1C24\],
+  .light .dashboard-theme .bg-\[\#1C1C24\]\/50,
+  .light .dashboard-theme .bg-brand-card {
+    background-color: var(--dash-elevated) !important;
+  }
+
+  .light .dashboard-theme .bg-gray-900,
+  .light .dashboard-theme .bg-gray-900\/50,
+  .light .dashboard-theme .bg-gray-800 {
+    background-color: var(--dash-panel) !important;
+  }
+
+  .light .dashboard-theme .bg-white\/5,
+  .light .dashboard-theme .bg-white\/10,
+  .light .dashboard-theme .bg-white\/20,
+  .light .dashboard-theme .bg-white\/\[0\.01\],
+  .light .dashboard-theme .bg-white\/\[0\.02\],
+  .light .dashboard-theme .bg-white\/\[0\.03\],
+  .light .dashboard-theme .bg-white\/\[0\.04\],
+  .light .dashboard-theme .bg-white\/\[0\.05\] {
+    background-color: var(--dash-hover) !important;
+  }
+
+  .light .dashboard-theme .hover\:bg-white\/5:hover,
+  .light .dashboard-theme .hover\:bg-white\/10:hover,
+  .light .dashboard-theme .hover\:bg-white\/20:hover,
+  .light .dashboard-theme .hover\:bg-white\/\[0\.01\]:hover,
+  .light .dashboard-theme .hover\:bg-white\/\[0\.02\]:hover,
+  .light .dashboard-theme .hover\:bg-white\/\[0\.03\]:hover,
+  .light .dashboard-theme .hover\:bg-white\/\[0\.04\]:hover,
+  .light .dashboard-theme .hover\:bg-white\/\[0\.05\]:hover,
+  .light .dashboard-theme .hover\:bg-\[\#111116\]:hover,
+  .light .dashboard-theme .hover\:bg-\[\#1C1C22\]:hover,
+  .light .dashboard-theme .hover\:bg-\[\#25252c\]:hover,
+  .light .dashboard-theme .hover\:bg-\[\#252530\]:hover {
+    background-color: var(--dash-hover) !important;
+  }
+
+  .light .dashboard-theme .border-gray-800,
+  .light .dashboard-theme .border-gray-800\/40,
+  .light .dashboard-theme .border-gray-800\/50,
+  .light .dashboard-theme .border-gray-800\/60,
+  .light .dashboard-theme .border-gray-800\/70,
+  .light .dashboard-theme .border-gray-800\/80,
+  .light .dashboard-theme .border-gray-700,
+  .light .dashboard-theme .border-gray-700\/80,
+  .light .dashboard-theme .border-white\/5,
+  .light .dashboard-theme .border-white\/10,
+  .light .dashboard-theme .border-white\/20 {
+    border-color: var(--dash-border) !important;
+  }
+
+  .light .dashboard-theme .hover\:border-gray-700:hover,
+  .light .dashboard-theme .hover\:border-gray-700\/80:hover,
+  .light .dashboard-theme .hover\:border-gray-600:hover,
+  .light .dashboard-theme .hover\:border-gray-500:hover,
+  .light .dashboard-theme .hover\:border-white\/20:hover,
+  .light .dashboard-theme .hover\:border-white\/30:hover {
+    border-color: var(--dash-strong-border) !important;
+  }
+
+  .light .dashboard-theme .text-white,
+  .light .dashboard-theme .text-gray-100,
+  .light .dashboard-theme .text-gray-200,
+  .light .dashboard-theme .text-gray-300 {
+    color: var(--dash-text) !important;
+  }
+
+  .light .dashboard-theme .text-gray-400 {
+    color: var(--dash-muted) !important;
+  }
+
+  .light .dashboard-theme .text-gray-500,
+  .light .dashboard-theme .text-gray-600 {
+    color: var(--dash-subtle) !important;
+  }
+
+  .light .dashboard-theme .hover\:text-white:hover,
+  .light .dashboard-theme .hover\:text-gray-200:hover,
+  .light .dashboard-theme .hover\:text-gray-300:hover,
+  .light .dashboard-theme .focus\:text-white:focus {
+    color: var(--dash-text) !important;
+  }
+
+  .light .dashboard-theme .bg-brand-purple.text-white,
+  .light .dashboard-theme .bg-emerald-500.text-white,
+  .light .dashboard-theme .bg-\[\#10B981\].text-white,
+  .light .dashboard-theme .hover\:bg-\[\#0da372\]:hover.text-white {
+    color: #ffffff !important;
+  }
+
+  .light .dashboard-theme input,
+  .light .dashboard-theme textarea,
+  .light .dashboard-theme select {
+    background-color: var(--dash-elevated);
+    border-color: var(--dash-border);
+    color: var(--dash-text);
+  }
+
+  .light .dashboard-theme input::placeholder,
+  .light .dashboard-theme textarea::placeholder {
+    color: var(--dash-subtle);
   }
 }
 

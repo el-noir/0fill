@@ -1,34 +1,11 @@
-"use client";
-
-import dynamic from "next/dynamic";
-import { Hero } from "@/components/Hero";
-import { Background } from "@/components/Background";
-import { SocialProof } from "@/components/SocialProof";
-import { BentoFeatures } from "@/components/BentoFeatures";
+import { MarketingHome } from "@/components/MarketingHome";
 import { Footer } from "@/components/Footer";
-import { HowItWorks } from "@/components/HowItWorks";
-import { Stats } from "@/components/Stats";
-import { LivePreview } from "@/components/LivePreview";
-
-const Testimonials = dynamic(() => import("@/components/Testimonials").then(mod => mod.Testimonials), { ssr: false });
-const Integrations = dynamic(() => import("@/components/Integrations").then(mod => mod.Integrations), { ssr: false });
-const FinalCTA = dynamic(() => import("@/components/FinalCTA").then(mod => mod.FinalCTA), { ssr: false });
 
 export default function AppPage() {
   return (
-    <div className="relative min-h-screen bg-[#0B0B0F] text-white selection:bg-[#10B981] selection:text-white overflow-x-hidden">
-      <Background />
-
+    <div className="relative min-h-screen overflow-x-hidden bg-[#f7f8f5] text-slate-950 selection:bg-emerald-500 selection:text-white">
       <main id="main-content">
-        <Hero />
-        <SocialProof />
-        <Stats />
-        <HowItWorks />
-        <LivePreview />
-        <BentoFeatures />
-        <Testimonials />
-        <Integrations />
-        <FinalCTA />
+        <MarketingHome />
       </main>
 
       <Footer />

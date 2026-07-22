@@ -1,46 +1,62 @@
-﻿import { motion } from 'motion/react';
-import { SlackLogo, NotionLogo, GitHubLogo, DiscordLogo, LinearLogo } from './ui/BrandIcons';
+import { ArrowRight, Braces, Mail, PlugZap, ShieldCheck, Webhook } from 'lucide-react';
 
 const integrations = [
-  { name: 'Slack', icon: SlackLogo, desc: 'Real-time notifications' },
-  { name: 'Notion', icon: NotionLogo, desc: 'Sync database items' },
-  { name: 'GitHub', icon: GitHubLogo, desc: 'Create issues automatically' },
-  { name: 'Discord', icon: DiscordLogo, desc: 'Community engagement' },
-  { name: 'Linear', icon: LinearLogo, desc: 'Streamline project tracking' },
+  {
+    name: 'Google Forms',
+    desc: 'Import existing forms and preview the AI conversation.',
+    icon: Braces,
+  },
+  {
+    name: 'Gmail',
+    desc: 'Send recovery emails through Google OAuth.',
+    icon: Mail,
+  },
+  {
+    name: 'Webhooks',
+    desc: 'Send signed events to your endpoint.',
+    icon: Webhook,
+  },
+  {
+    name: 'Zapier, Make, n8n',
+    desc: 'Use catch hooks for automation workflows.',
+    icon: PlugZap,
+  },
+  {
+    name: 'Custom API',
+    desc: 'Verify payload signatures on your backend.',
+    icon: ShieldCheck,
+  },
 ];
 
 export function Integrations() {
   return (
-    <section id="integrations" className="py-24 relative overflow-hidden" aria-labelledby="integrations-title">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 pointer-events-none" />
+    <section id="integrations" className="bg-white py-24" aria-labelledby="integrations-title">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mb-12 max-w-3xl">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+            Integrations
+          </p>
+          <h2 id="integrations-title" className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
+            Google where it matters. Webhooks for everything else.
+          </h2>
+          <p className="mt-4 text-base leading-7 text-slate-600">
+            Keep the integration model simple: import from Google Forms, recover with Gmail,
+            and route events to the systems your team already trusts.
+          </p>
+        </div>
 
-      <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
-        <h2 id="integrations-title" className="text-3xl md:text-5xl font-bold text-white mb-6">Seamless Integrations</h2>
-        <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-16">
-          Connect 0Fill with the tools you already use. No code required.
-        </p>
-
-        <div className="flex flex-wrap justify-center gap-4 md:gap-8">
+        <div className="grid gap-3 lg:grid-cols-5">
           {integrations.map((item, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, type: "spring", stiffness: 50 }}
-              whileHover={{ y: -5, scale: 1.02 }}
-              className="group relative px-8 py-6 rounded-2xl bg-[#1C1C24] border border-white/5 flex flex-col items-center gap-4 shadow-xl hover:border-white/10 hover:bg-[#23232D] transition-all cursor-default min-w-[160px] md:min-w-[200px]"
-            >
-              <div className="w-12 h-12 flex items-center justify-center text-gray-400 group-hover:text-white transition-colors">
-                <item.icon className="w-full h-full" />
+            <article key={item.name} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-5 flex items-center justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-950 text-white">
+                  <item.icon className="h-4 w-4" />
+                </div>
+                {index < integrations.length - 1 && <ArrowRight className="hidden h-4 w-4 text-slate-300 lg:block" />}
               </div>
-              <div className="text-center">
-                <span className="block text-white font-semibold text-lg mb-1">{item.name}</span>
-                <span className="block text-xs text-gray-500 group-hover:text-gray-400 transition-colors">{item.desc}</span>
-              </div>
-
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-            </motion.div>
+              <h3 className="text-base font-semibold text-slate-950">{item.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{item.desc}</p>
+            </article>
           ))}
         </div>
       </div>

@@ -16,8 +16,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "0Fill - Turn Forms Into AI Conversations | No-Code Form Builder",
-  description: "Transform static Google Forms into intelligent AI-driven chat experiences that collect structured data automatically. No coding required. Trusted by 2,000+ companies.",
+  title: "0Fill - AI Forms That Recover Abandoned Leads",
+  description: "Turn static forms into AI conversations, capture partial responses, and recover abandoned leads with Gmail follow-ups and signed webhooks.",
   keywords: [
     "AI forms",
     "conversational forms",
@@ -41,14 +41,14 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://0fill.ai',
-    title: '0Fill - Turn Forms Into AI Conversations',
-    description: 'Transform static Google Forms into intelligent AI-driven chat experiences. No coding required. Trusted by 2,000+ companies.',
+    title: '0Fill - AI Forms That Recover Abandoned Leads',
+    description: 'Turn static forms into AI conversations, capture partial responses, and recover abandoned leads with Gmail follow-ups and signed webhooks.',
     siteName: '0Fill',
   },
   twitter: {
     card: 'summary_large_image',
-    title: '0Fill - Turn Forms Into AI Conversations',
-    description: 'Transform static Google Forms into intelligent AI-driven chat experiences. No coding required.',
+    title: '0Fill - AI Forms That Recover Abandoned Leads',
+    description: 'Turn static forms into AI conversations, capture partial responses, and recover abandoned leads.',
     creator: '@0Fill',
   },
   robots: {
@@ -78,7 +78,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} scroll-smooth`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable} scroll-smooth`}>
       <body className={`${inter.className} antialiased`}>
         <div className="relative min-h-screen bg-[#0B0B0F] text-white selection:bg-[#10B981] selection:text-white overflow-x-hidden">
           {children}
